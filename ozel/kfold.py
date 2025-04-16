@@ -1,0 +1,54 @@
+import pandas as pd
+import random
+
+class StratifiedKFold:
+    def __init__(self, k: int = 5, class_column: str = "label"):
+        self.k = k
+        self.class_column = class_column
+    
+    def get_splits(self, X: pd.DataFrame) -> list[tuple]:
+        # # shuffle, source: https://stackoverflow.com/questions/29576430/shuffle-dataframe-rows
+        X = X.sample(frac=1, random_state=42).reset_index(drop=True)
+
+        pos_instances: pd.DataFrame = X[X[self.class_column] == 1]
+        neg_instances: pd.DataFrame = X[X[self.class_column] == 0]
+
+        pos_size = len(pos_instances) // self.k
+        neg_size = len(neg_instances) // self.k
+
+        # creating folds once
+        folds = []
+        for i in range(self.k):
+            if i == self.k - 1: # in case it is not divisible there are left overs, special case
+                fold = pd.concat([pos_instances.iloc[i * pos_size : ], neg_instances[i * neg_size : ]])
+            else:
+                # get window of entries
+                fold = pd.concat([pos_instances.iloc[i * pos_size : (i+1) * pos_size], neg_instances.iloc[i * neg_size : (i+1) * neg_size]])
+
+            folds.append(fold)
+        
+        train_test_splits = []
+        for i in range(self.k):
+            test_split = folds[i]
+            train_split = pd.concat([f for j, f in enumerate(folds) if j != i]) # exclude test set
+
+            test_split = test_split.reset_index(drop=True) # got index errors
+            train_split = train_split.reset_index(drop=True)
+            train_test_splits.append((train_split, test_split))
+        
+        return train_test_splits
+
+# old test code
+# if __name__ == "__main__":
+#     df = pd.read_csv("loan.csv")
+#     print(df["label"].value_counts())
+#     skf = StratifiedKFold(5, "label")
+#     splits = skf.get_splits(df)
+#     for train_split, test_split in splits:
+#         print(train_split)
+#         print(len(train_split))
+#         print(train_split["label"].value_counts())
+#         print(test_split)
+#         print(len(test_split))
+#         print(test_split["label"].value_counts())
+#         print()
