@@ -214,7 +214,7 @@ class RandomForest:
         else:
             return counts.most_common(1)[0][0]
 
-    def confusion_matrix(self, X: pd.DataFrame):
+    def confusion_matrix(self, X: pd.DataFrame, label_map: dict[str, int] = None):
         # HW2 Code
         """
             Returns TP, FP, FN, TN
@@ -227,6 +227,10 @@ class RandomForest:
         fp = 0
         fn = 0
         tn = 0
+
+        if label_map:
+            predictions = predictions.map(label_map)
+            actual = actual.map(label_map)
 
         for p, a in list(zip(predictions, actual)):
             if p == 1 and a == 1:

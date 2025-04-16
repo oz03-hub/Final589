@@ -10,20 +10,29 @@ class StratifiedKFold:
         # # shuffle, source: https://stackoverflow.com/questions/29576430/shuffle-dataframe-rows
         X = X.sample(frac=1, random_state=42).reset_index(drop=True)
 
-        pos_instances: pd.DataFrame = X[X[self.class_column] == 1]
-        neg_instances: pd.DataFrame = X[X[self.class_column] == 0]
+        labels = X[self.class_column].unique()
+        label_instances = {label: len(X[X[self.class_column] == label]) // self.k for label in labels}
 
-        pos_size = len(pos_instances) // self.k
-        neg_size = len(neg_instances) // self.k
+        # pos_instances: pd.DataFrame = X[X[self.class_column] == 1]
+        # neg_instances: pd.DataFrame = X[X[self.class_column] == 0]
+
+        # pos_size = len(pos_instances) // self.k
+        # neg_size = len(neg_instances) // self.k
 
         # creating folds once
         folds = []
         for i in range(self.k):
             if i == self.k - 1: # in case it is not divisible there are left overs, special case
-                fold = pd.concat([pos_instances.iloc[i * pos_size : ], neg_instances[i * neg_size : ]])
+                label_folds = []
+                for label in labels:
+                    label_folds.append(X[X[self.class_column] == label].iloc[i * label_instances[label] : ])
+                fold = pd.concat(label_folds)
             else:
                 # get window of entries
-                fold = pd.concat([pos_instances.iloc[i * pos_size : (i+1) * pos_size], neg_instances.iloc[i * neg_size : (i+1) * neg_size]])
+                label_folds = []
+                for label in labels:
+                    label_folds.append(X[X[self.class_column] == label].iloc[i * label_instances[label] : (i+1) * label_instances[label]])
+                fold = pd.concat(label_folds)
 
             folds.append(fold)
         
