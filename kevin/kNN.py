@@ -3,7 +3,7 @@ import numpy as np
 import sklearn
 import argparse
 
-filePath = r'datasets\wdbc.csv'
+filePath = r'..\data\parkinsons.csv'
 
 def kNNAlgorithm(dataset, unknownInstance, k):
     distClassTuples = []
@@ -25,15 +25,15 @@ def kNNAlgorithm(dataset, unknownInstance, k):
 
 def mainkNN(k, normalize = True):
     # load the csv / dataset into a numpy 2d array
-    data = np.loadtxt(filePath, delimiter=',')
+    data = np.loadtxt(filePath, delimiter=',', skiprows=1)
     _, cols = np.shape(data)
 
     # Get the maximum and minimum values for each column
     maxCols = [np.max(data[:, i]) for i in range(cols - 1)]
     minCols = [np.min(data[:, i]) for i in range(cols - 1)]
     # We do cols - 1 because we do not need to normalize the classifier column
-    print(maxCols)
-    print(minCols)
+    #print(maxCols)
+    #print(minCols)
     # Normalize the dataset to the range [0, 1]
     if normalize:
         for row in data:
@@ -53,7 +53,7 @@ def mainkNN(k, normalize = True):
         trainingCorrect += 1 if classLabel == entry[-1] else 0
     
     trainingAccuracy = trainingCorrect / len(train)
-    print(f"Training set accuracy: {trainingAccuracy}")
+    #print(f"Training set accuracy: {trainingAccuracy}")
 
     # Running kNN algorithm on testing instances
     testingCorrect = 0
@@ -62,7 +62,7 @@ def mainkNN(k, normalize = True):
         testingCorrect += 1 if classLabel == entry[-1] else 0
     
     testingAccuracy = testingCorrect / len(test)
-    print(f"Testing set accuracy: {testingAccuracy}")
+    #print(f"Testing set accuracy: {testingAccuracy}")
     return trainingAccuracy, testingAccuracy
 
 def generatekNNGraphs():
@@ -88,6 +88,8 @@ def generatekNNGraphs():
         errTrain.append(np.std(training))
         yTest.append(np.mean(testing))
         errTest.append(np.std(testing))
+        print(f"Testing set accuracy: {yTest[-1]}, std: {errTest[-1]}")
+        print(f"Training set accuracy: {yTrain[-1]}, std: {errTrain[-1]}")
 
     plt.figure(1)
     plt.errorbar(x, yTrain, yerr=errTrain, color='black', marker='.', markersize = 7, capsize=3, capthick=1)
@@ -119,6 +121,7 @@ def generateUnnormalizedkNNGraph():
         x.append(k)
         yTest.append(np.mean(testing))
         errTest.append(np.std(testing))
+        print(f"Testing set accuracy: {yTest[-1]}, std: {errTest[-1]}")
 
     plt.figure(1)
     plt.errorbar(x, yTest, yerr=errTest, color='black',marker='.', markersize = 7, capsize=3, capthick=1)

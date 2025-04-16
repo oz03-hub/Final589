@@ -4,7 +4,7 @@ import sklearn
 import math
 import argparse
 
-filePath = r'datasets\car.csv'
+filePath = r'..\data\parkinsons.csv'
 
 # Class used to build the decision tree
 # Two functions ->

@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 
-filePath = r'dataset\wdbc.csv'
+filePath = r'..\data\credit_approval.csv'
 # To Do: Alter filePath based on dataset you want to test
 
 class treeNode:
