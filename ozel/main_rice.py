@@ -3,8 +3,9 @@ from kfold import StratifiedKFold
 from knn import KNN, normalize_data
 from itertools import product
 from random_forest import RandomForest
+from standard_nb import NaiveBayes
 
-if __name__ == "__main__":
+def run_rf():
     # Random Forest for Rice Dataset
     rice_df = pd.read_csv("data/rice.csv")
     splitter = StratifiedKFold(k=10)
@@ -53,6 +54,7 @@ if __name__ == "__main__":
     print(f"Best Accuracy: {best_accuracy}")
     print(f"Best F1 Score: {best_f1_score}")
 
+def run_knn():
     # KNN for Rice Dataset
     rice_df = pd.read_csv("data/rice.csv")
     splitter = StratifiedKFold(k=10)
@@ -108,3 +110,59 @@ if __name__ == "__main__":
     print(f"Best Params: {best_params}")
     print(f"Best Accuracy: {best_accuracy}")
     print(f"Best F1 Score: {best_f1_score}")
+
+def run_nb():
+    # Naive Bayes for Rice Dataset
+    rice_df = pd.read_csv("data/rice.csv")
+    splitter = StratifiedKFold(k=10)
+
+    hyperparams = {
+        "alpha": [0.1, 0.5, 1, 2, 5, 10],
+    }
+
+    param_grid = product(*hyperparams.values())
+    param_names = list(hyperparams.keys())
+
+    best_params = None
+    best_accuracy = 0
+    best_f1_score = 0
+
+    print("Naive Bayes for Rice Dataset")
+    for params in param_grid:
+        params_dict = dict(zip(param_names, params))
+
+        avg_accuracy = 0
+        avg_f1_score = 0
+        for train_split, test_split in splitter.get_splits(rice_df):
+            nb_model = NaiveBayes(alpha=params_dict["alpha"])
+            nb_model.fit(train_split.drop(columns=["label"]), train_split["label"])
+            
+            tp, tn, fp, fn = nb_model.confusion_matrix(test_split.drop(columns=["label"]), test_split["label"], label_map={"Cammeo": 0, "Osmancik": 1})
+            accuracy = (tp + tn) / (tp + tn + fp + fn)
+            precision = tp / (tp + fp)
+            recall = tp / (tp + fn)
+            f1_score = 2 * precision * recall / (precision + recall)
+
+            avg_accuracy += accuracy
+            avg_f1_score += f1_score
+
+        avg_accuracy /= 10
+        avg_f1_score /= 10
+        print(f"\tParams: {params_dict}")
+        print(f"\tAvg Accuracy: {avg_accuracy}")
+        print(f"\tAvg F1 Score: {avg_f1_score}")
+        print()
+
+        if avg_accuracy > best_accuracy:
+            best_accuracy = avg_accuracy
+            best_f1_score = avg_f1_score
+            best_params = params_dict
+
+    print(f"Best Params: {best_params}")
+    print(f"Best Accuracy: {best_accuracy}")
+    print(f"Best F1 Score: {best_f1_score}")
+
+if __name__ == "__main__":
+    # run_rf()
+    # run_knn()
+    run_nb()

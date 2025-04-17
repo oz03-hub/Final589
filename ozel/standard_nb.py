@@ -1,87 +1,90 @@
-from collections import Counter
+import pandas as pd
+import numpy as np
+import math
 
 class NaiveBayes:
-    def __init__():
-        pass
+    """Can fit categorical and numeric attributes."""
+    def __init__(self, numeric_end: str = "_num", alpha: float = 0.1):
+        """
+        Args:
+            numeric_end: The suffix of numeric attributes. No need to change usually.
+            alpha: The smoothing parameter. Change to tune the model.
+        """
+        self.categorical_column_parameters = {}
+        self.numeric_column_parameters = {}
+        self.class_probabilities = {}
+        self.numeric_end = numeric_end
+        self.alpha = alpha
+        self.classes = {}
+    
+    def fit(self, X_train: pd.DataFrame, y_train: pd.Series):
+        """
+        Will fit to mixture of categorical and numeric attributes.
 
-class StandardNB:
-    def __init__(self, pos: list[list[str]], neg: list[list[str]], vocab: list[str]):
-        self.positive_instances = pos
-        self.negative_instances = neg
-        self.vocab = vocab
-        self._fit()
+        Args:
+            X_train: The training data. Must be a dataframe.
+            y_train: The training labels. Must be a series.
+        """
 
-    def _transform_to_tf_dict(self):
-        # each key a term, each value a count, no matrix blew up the memory
+        for class_ in y_train.unique():
+            if class_ not in self.numeric_column_parameters:
+                self.numeric_column_parameters[class_] = {}
+            if class_ not in self.categorical_column_parameters:
+                self.categorical_column_parameters[class_] = {}
 
-        # save n(w_s, y_i) for each class
-        self.pos_tf_dict = {}
-        for doc in self.positive_instances:
-            tf = Counter(doc)
-            for word, f in tf.items():
-                if word not in self.pos_tf_dict:
-                    self.pos_tf_dict[word] = f
+            self.classes[class_] = X_train[y_train == class_] # mask out rows of the class
+            self.class_probabilities[class_] = len(self.classes[class_]) / len(X_train)
+
+            for column in X_train.columns:                
+                if column.endswith(self.numeric_end):
+                    # calculate mean and std for numeric attributes
+                    mean = self.classes[class_][column].mean()
+                    std = self.classes[class_][column].std()
+                    self.numeric_column_parameters[class_][column] = (mean, std)
                 else:
-                    self.pos_tf_dict[word] += f
+                    # calculate probability for categorical attributes
+                    self.categorical_column_parameters[class_][column] = (self.classes[class_][column].value_counts() + self.alpha) / (len(self.classes[class_]) + self.alpha * len(self.classes[class_].unique()))
 
-        self.neg_tf_dict = {}
-        for doc in self.negative_instances:
-            tf = Counter(doc)
-            for word, f in tf.items():
-                if word not in self.neg_tf_dict:
-                    self.neg_tf_dict[word] = f
+    def _predict_row(self, row: pd.Series):
+        class_probabilities = {}
+        for class_ in self.classes:
+            p = math.log(self.class_probabilities[class_])
+            for column, value in row.items():
+                if column.endswith(self.numeric_end):
+                    mean, std = self.numeric_column_parameters[class_][column]
+                    # gaussian estimation
+                    estimation = (1 / (std * np.sqrt(2 * np.pi))) * np.exp(-((value - mean) ** 2) / (2 * std ** 2)) # formula from lecture 6
+                    p += math.log(estimation)
                 else:
-                    self.neg_tf_dict[word] += f
+                    p += math.log(self.categorical_column_parameters[class_][column][value])
 
-    def _fit(self):
-        self._transform_to_tf_dict()
+            class_probabilities[class_] = p
+        
+        return max(class_probabilities, key=class_probabilities.get)
 
-        # calculate p(y_i)
-        self.p_y_pos = len(self.positive_instances) / (
-            len(self.positive_instances) + len(self.negative_instances)
-        )
-        self.p_y_neg = len(self.negative_instances) / (
-            len(self.positive_instances) + len(self.negative_instances)
-        )
+    def predict(self, X_test: pd.DataFrame):
+        return X_test.apply(self._predict_row, axis=1)
 
-        self.pos_n = sum(
-            self.pos_tf_dict.values()
-        )  # calculate sum of n(w_s, y_i) for each class
-        self.neg_n = sum(self.neg_tf_dict.values())
+    def confusion_matrix(self, X_test: pd.DataFrame, y_test: pd.Series, label_map: dict[str, int] = None):
+        """
+        Args:
+            X_test: The test data. Must be a dataframe.
+            y_test: The test labels. Must be a series.
+            label_map: Optional dictionary to map labels to integers. Use for rice dataset.
+        """
+        predictions = self.predict(X_test)
+        actual = y_test
 
-    def predict(self, doc: list[str]):
-        p_p = self.p_y_pos  # multiply starts with p(y_i)
-        p_n = self.p_y_neg
-
-        doc = set(doc)  # unique words in doc
-
-        for word in doc:
-            if word not in self.vocab:
-                p_p *= 0
-                p_n *= 0
-            else:
-                p_p *= self.pos_tf_dict.get(word, 0) / self.pos_n
-                p_n *= self.neg_tf_dict.get(word, 0) / self.neg_n
-
-        # choose negative class if both same, 0
-        if p_p > p_n:
-            return 1  # pos class
-        else:
-            return 0  # neg class
-
-    def predict_set(self, doc_set: list[tuple[list[str], int]]):
-        return [self.predict(doc[0]) for doc in doc_set]  # ignore the label
-
-    def build_confusion_matrix(self, doc_set_with_labels: list[tuple[list[str], int]]):
-        predictions = self.predict_set(doc_set_with_labels)
-        labels = [doc[1] for doc in doc_set_with_labels]
+        if label_map:
+            predictions = predictions.map(label_map)
+            actual = actual.map(label_map)
 
         tp = 0
         tn = 0
         fp = 0
         fn = 0
 
-        for prediction, label in zip(predictions, labels):
+        for prediction, label in zip(predictions, actual):
             if prediction == 1 and label == 1:
                 tp += 1
             elif prediction == 0 and label == 0:
