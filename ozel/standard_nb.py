@@ -16,7 +16,8 @@ class NaiveBayes:
         self.numeric_end = numeric_end
         self.alpha = alpha
         self.classes = {}
-    
+        self.denoms = {}
+
     def fit(self, X_train: pd.DataFrame, y_train: pd.Series):
         """
         Will fit to mixture of categorical and numeric attributes.
@@ -34,6 +35,7 @@ class NaiveBayes:
 
             self.classes[class_] = X_train[y_train == class_] # mask out rows of the class
             self.class_probabilities[class_] = len(self.classes[class_]) / len(X_train)
+            self.denoms[class_] = {}
 
             for column in X_train.columns:                
                 if column.endswith(self.numeric_end):
@@ -43,7 +45,8 @@ class NaiveBayes:
                     self.numeric_column_parameters[class_][column] = (mean, std)
                 else:
                     # calculate probability for categorical attributes
-                    self.categorical_column_parameters[class_][column] = (self.classes[class_][column].value_counts() + self.alpha) / (len(self.classes[class_]) + self.alpha * len(self.classes[class_].unique()))
+                    self.categorical_column_parameters[class_][column] = self.classes[class_][column].value_counts()
+                    self.denoms[class_][column] = len(self.classes[class_]) + self.alpha * len(self.classes[class_][column].unique())
 
     def _predict_row(self, row: pd.Series):
         class_probabilities = {}
@@ -54,19 +57,31 @@ class NaiveBayes:
                     mean, std = self.numeric_column_parameters[class_][column]
                     # gaussian estimation
                     estimation = (1 / (std * np.sqrt(2 * np.pi))) * np.exp(-((value - mean) ** 2) / (2 * std ** 2)) # formula from lecture 6
-                    p += math.log(estimation)
+                    if estimation != 0:
+                        p += math.log(estimation)
+                    else:
+                        p += float("-inf")
                 else:
-                    p += math.log(self.categorical_column_parameters[class_][column][value])
+                    vc = self.categorical_column_parameters[class_][column].get(value, 0)
+                    p += math.log((vc + self.alpha) / self.denoms[class_][column])
 
             class_probabilities[class_] = p
         
         return max(class_probabilities, key=class_probabilities.get)
 
     def predict(self, X_test: pd.DataFrame):
+        """
+        Predicts the class of the test data.
+
+        Args:
+            X_test: The test data. Must be a dataframe.
+        """
         return X_test.apply(self._predict_row, axis=1)
 
     def confusion_matrix(self, X_test: pd.DataFrame, y_test: pd.Series, label_map: dict[str, int] = None):
         """
+        Binary classification confusion matrix.
+
         Args:
             X_test: The test data. Must be a dataframe.
             y_test: The test labels. Must be a series.

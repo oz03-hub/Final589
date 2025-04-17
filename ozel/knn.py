@@ -7,7 +7,10 @@ def normalize_data(df) -> pd.DataFrame:
     for column in df.columns:
         max_value = df[column].max()
         min_value = df[column].min()
-        df[column] = (df[column] - min_value) / (max_value - min_value)
+        if max_value == min_value:
+            df[column] = 0
+        else:
+            df[column] = (df[column] - min_value) / (max_value - min_value)
     return df
 
 
@@ -40,6 +43,7 @@ class KNN:
         distances.sort(key=lambda x: x[0])
 
         k_top = distances[: self.k]
+        # print(k_top)
         counts = Counter([t[1] for t in k_top])
         max_class = counts.most_common(1)[0][0]
 
