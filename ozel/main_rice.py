@@ -4,6 +4,7 @@ from knn import KNN, normalize_data
 from itertools import product
 from random_forest import RandomForest
 from standard_nb import NaiveBayes
+import matplotlib.pyplot as plt
 
 def run_rf():
     # Random Forest for Rice Dataset
@@ -22,6 +23,8 @@ def run_rf():
     best_f1_score = 0
 
     print("Random Forest for Rice Dataset")
+    accuracies = []
+    f1_scores = []
     for params in param_grid:
         params_dict = dict(zip(param_names, params))
 
@@ -49,10 +52,28 @@ def run_rf():
             best_accuracy = avg_accuracy
             best_f1_score = avg_f1_score
             best_params = params_dict
+        
+        accuracies.append(avg_accuracy)
+        f1_scores.append(avg_f1_score)
 
     print(f"Best Params: {best_params}")
     print(f"Best Accuracy: {best_accuracy}")
     print(f"Best F1 Score: {best_f1_score}")
+
+    with open("ozel/results/rice_rf.txt", "w") as f:
+        f.write(f"Best Params: {best_params}\n")
+        f.write(f"Best Accuracy: {best_accuracy}\n")
+        f.write(f"Best F1 Score: {best_f1_score}\n")
+
+    plt.plot(hyperparams["n_tree"], accuracies, label="Accuracy", marker="o")
+    plt.plot(hyperparams["n_tree"], f1_scores, label="F1 Score", marker="o")
+    plt.ylim(min(accuracies) - 0.05, max(accuracies) + 0.05)
+    plt.xlabel("Number of Trees")
+    plt.ylabel("Accuracy and F1 Score")
+    plt.legend()
+    plt.grid()
+    plt.savefig("ozel/figures/rice_rf.png")
+    plt.clf()
 
 def run_knn():
     # KNN for Rice Dataset
@@ -69,6 +90,9 @@ def run_knn():
     best_params = None
     best_accuracy = 0
     best_f1_score = 0
+
+    accuracies = []
+    f1_scores = []
 
     print("KNN for Rice Dataset")
     for params in param_grid:
@@ -106,10 +130,28 @@ def run_knn():
             best_accuracy = avg_accuracy
             best_f1_score = avg_f1_score
             best_params = params_dict
+        
+        accuracies.append(avg_accuracy)
+        f1_scores.append(avg_f1_score)
 
     print(f"Best Params: {best_params}")
     print(f"Best Accuracy: {best_accuracy}")
     print(f"Best F1 Score: {best_f1_score}")
+
+    with open("ozel/results/rice_knn.txt", "w") as f:
+        f.write(f"Best Params: {best_params}\n")
+        f.write(f"Best Accuracy: {best_accuracy}\n")
+        f.write(f"Best F1 Score: {best_f1_score}\n")
+
+    plt.plot(hyperparams["k"], accuracies, label="Accuracy", marker="o")
+    plt.plot(hyperparams["k"], f1_scores, label="F1 Score", marker="o")
+    plt.ylim(min(accuracies) - 0.05, max(accuracies) + 0.05)
+    plt.xlabel("Number of Neighbors")
+    plt.ylabel("Accuracy and F1 Score")
+    plt.legend()
+    plt.grid()
+    plt.savefig("ozel/figures/rice_knn.png")
+    plt.clf()
 
 def run_nb():
     # Naive Bayes for Rice Dataset
@@ -127,6 +169,8 @@ def run_nb():
     best_accuracy = 0
     best_f1_score = 0
 
+    accuracies = []
+    f1_scores = []
     print("Naive Bayes for Rice Dataset")
     for params in param_grid:
         params_dict = dict(zip(param_names, params))
@@ -158,11 +202,29 @@ def run_nb():
             best_f1_score = avg_f1_score
             best_params = params_dict
 
+        accuracies.append(avg_accuracy)
+        f1_scores.append(avg_f1_score)
+
     print(f"Best Params: {best_params}")
     print(f"Best Accuracy: {best_accuracy}")
     print(f"Best F1 Score: {best_f1_score}")
 
+    with open("ozel/results/rice_nb.txt", "w") as f:
+        f.write(f"Best Params: {best_params}\n")
+        f.write(f"Best Accuracy: {best_accuracy}\n")
+        f.write(f"Best F1 Score: {best_f1_score}\n")
+
+    plt.plot(hyperparams["alpha"], accuracies, label="Accuracy", marker="o")
+    plt.plot(hyperparams["alpha"], f1_scores, label="F1 Score", marker="o")
+    plt.ylim(min(accuracies) - 0.05, max(accuracies) + 0.05)
+    plt.xlabel("Alpha")
+    plt.ylabel("Accuracy and F1 Score")
+    plt.legend()
+    plt.grid()
+    plt.savefig("ozel/figures/rice_nb.png")
+    plt.clf()
+
 if __name__ == "__main__":
-    # run_rf()
-    # run_knn()
+    run_rf()
+    run_knn()
     run_nb()

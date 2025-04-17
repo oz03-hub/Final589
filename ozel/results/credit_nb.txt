@@ -1,0 +1,3 @@
+Best Params: {'alpha': 0.01}
+Best Accuracy: 0.45326704545454544
+Best F1 Score: 0.49992895194788894
