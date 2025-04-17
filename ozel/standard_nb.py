@@ -1,9 +1,8 @@
-import numpy as np
 from collections import Counter
-import random
 
-random.seed(4)
-
+class NaiveBayes:
+    def __init__():
+        pass
 
 class StandardNB:
     def __init__(self, pos: list[list[str]], neg: list[list[str]], vocab: list[str]):

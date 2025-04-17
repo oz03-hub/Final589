@@ -1,22 +1,9 @@
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.utils import shuffle
 from collections import Counter
 
-# shuffle dataset
-# split 80% training, 20% testing
-# use euclidean distance
 
-
-def read_data(path):
-    # return pd.read_csv(path, header=None)
-    df = pd.read_csv(path, header=None, index_col=False)
-    # print(df.head())
-    return df
-
-
-def normalize_data(df):
+def normalize_data(df) -> pd.DataFrame:
     for column in df.columns:
         max_value = df[column].max()
         min_value = df[column].min()
@@ -24,77 +11,76 @@ def normalize_data(df):
     return df
 
 
-def shuffle_data(df):
-    return shuffle(df)
+class KNN:
+    """Operates only on numeric data. Supports multi-class classification. Don't forget to normalize the data before fitting."""
 
+    def __init__(self, k: int):
+        """
+        Args:
+            k: Number of neighbors to consider.
+        """
+        self.k = k
 
-def split_data(df):
-    """
-    Returning: X_train, X_test, y_train, y_test
-    """
-    X = df.iloc[:, :-1].to_numpy()
-    y = df.iloc[:, -1].to_numpy()
+    def fit(self, X_train: pd.DataFrame, y_train: pd.Series):
+        """
+        Args:
+            X_train: MUST BE DATAFRAME.
+            y_train: MUST BE SERIES.
+        """
+        self.X_train = X_train.to_numpy()
+        self.y_train = y_train.to_numpy()
 
-    # print("X: ", X.shape)
-    # print("y: ", y.shape)
+    def _euclidean_distances(self, x: np.ndarray, X_list: np.ndarray) -> np.ndarray:
+        differences = (x - X_list) ** 2
+        return np.sqrt(np.sum(differences, axis=1))
 
-    return train_test_split(X, y, test_size=0.2)
+    def _knn_predict(self, X_unk: pd.Series) -> int:
+        distances = self._euclidean_distances(X_unk.to_numpy(), self.X_train)
+        distances = list(zip(distances, self.y_train))
+        distances.sort(key=lambda x: x[0])
 
+        k_top = distances[: self.k]
+        counts = Counter([t[1] for t in k_top])
+        max_class = counts.most_common(1)[0][0]
 
-def euclidean_distances(x, X_list):
-    # print(x.shape) # (30, ) -> broadcast to (1, 30)
-    # print(X_list.shape) # (455, 30)
-    differences = (x - X_list) ** 2  # (455, 30)
-    return np.sqrt(np.sum(differences, axis=1))  # (455, )
+        return max_class
 
+    def predict(self, X_test: pd.DataFrame) -> pd.Series:
+        """
+        Args:
+            X_test: MUST BE DATAFRAME.
+        """
+        return X_test.apply(self._knn_predict, axis=1)
 
-# compute accuracy of the knn model when used to make predictions for instances in the training set
-# percentage of correct predictions made by the model when applied to the training data: correct / total
-# compute same for testing set
+    def confusion_matrix(
+        self, X_test: pd.DataFrame, y_test: pd.Series, label_map: dict[str, int] = None
+    ) -> tuple[int, int, int, int]:
+        """
+        Args:
+            X_test: MUST BE DATAFRAME.
+            y_test: MUST BE SERIES.
+            label_map: Optional dictionary to map labels to integers. Use for rice dataset.
+        """
+        predictions = self.predict(X_test)
+        actual = y_test
 
+        if label_map:
+            predictions = predictions.map(label_map)
+            actual = actual.map(label_map)
 
-def knn(path, k, norm=True):
-    """
-    Returning: acc_train, acc_test
-    """
-    df = read_data(path)
-    if norm:
-        df = normalize_data(df)
+        tp = 0
+        fp = 0
+        fn = 0
+        tn = 0
 
-    X_train, X_test, y_train, y_test = split_data(shuffle_data(df))
+        for p, a in list(zip(predictions, actual)):
+            if p == 1 and a == 1:
+                tp += 1
+            elif p == 1 and a == 0:
+                fp += 1
+            elif p == 0 and a == 1:
+                fn += 1
+            elif p == 0 and a == 0:
+                tn += 1
 
-    training_corrects = 0
-    for x, y in zip(X_train, y_train):
-        pred_class = knn_predict(x, X_train, y_train, k)
-
-        if pred_class == y:
-            training_corrects += 1
-
-    training_accuracy = training_corrects / len(X_train)
-
-    test_corrects = 0
-    for x, y in zip(X_test, y_test):
-        pred_class = knn_predict(x, X_train, y_train, k)
-
-        if pred_class == y:
-            test_corrects += 1
-    test_accuracy = test_corrects / len(X_test)
-
-    return training_accuracy, test_accuracy
-
-
-def knn_predict(X_unk, X_train, y_train, k):
-    """
-    Runs for each predicted datapoint.
-
-        Args: X_unk: single datapoint, X_train: list of datapoints
-    """
-    distances = euclidean_distances(X_unk, X_train)
-    distances = list(zip(distances, y_train))
-    distances.sort(key=lambda x: x[0])
-
-    k_top = distances[:k]
-    counts = Counter([t[1] for t in k_top])
-    max_class = counts.most_common(1)[0][0]
-
-    return max_class
+        return tp, fp, fn, tn
