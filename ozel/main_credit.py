@@ -12,7 +12,7 @@ def run_knn():
     # src: https://datagy.io/sklearn-one-hot-encode/
     credit_df = pd.read_csv("data/credit_approval.csv")
     cat_columns = [col for col in credit_df.columns if col.endswith("cat")]
-    transformer = make_column_transformer((OneHotEncoder(), cat_columns), remainder="passthrough")
+    transformer = make_column_transformer((OneHotEncoder(sparse_output=False), cat_columns), remainder="passthrough")
     credit_df = transformer.fit_transform(credit_df)
     credit_df = pd.DataFrame(credit_df, columns=transformer.get_feature_names_out())
     credit_df.rename(columns={"remainder__label": "label"}, inplace=True)
