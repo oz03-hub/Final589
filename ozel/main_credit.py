@@ -240,6 +240,6 @@ def run_nb():
     plt.clf()
 
 if __name__ == "__main__":
-    # run_knn()
-    # run_rf()
+    run_knn()
+    run_rf()
     run_nb()

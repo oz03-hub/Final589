@@ -1,3 +1,3 @@
-Best Params: {'k': 3}
-Best Accuracy: 0.8784293831168831
-Best F1 Score: 0.8664285941227448
+Best Params: {'k': 5}
+Best Accuracy: 0.8747767857142857
+Best F1 Score: 0.8624076855011055
