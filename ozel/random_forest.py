@@ -246,6 +246,7 @@ class RandomForest:
             stopping_criterion=self.stopping_criterion,
             stopping_criterion_hyperparameter=self.stopping_criterion_hyperparameter,
             numeric_end=self.numeric_end,
+            class_column=self.class_column,
         )
 
     def _create_boots(self):

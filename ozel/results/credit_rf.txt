@@ -1,3 +1,3 @@
-Best Params: {'n_tree': 50}
-Best Accuracy: 0.8760754870129871
-Best F1 Score: 0.8639486941212144
+Best Params: {'n_tree': 10}
+Best Accuracy: 0.8679991883116884
+Best F1 Score: 0.8530513655776627
