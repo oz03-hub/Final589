@@ -23,9 +23,9 @@ def kNNAlgorithm(dataset, unknownInstance, k):
     # Return 1 if 1 is the classifier majority, else 0 (then 0 is majority)
     return 1 if count > k / 2 else 0
 
-def mainkNN(k, normalize = True):
+def mainkNN(k, normalize = True, fP = filePath):
     # load the csv / dataset into a numpy 2d array
-    data = np.loadtxt(filePath, delimiter=',', skiprows=1)
+    data = np.loadtxt(fP, delimiter=',', skiprows=1)
     _, cols = np.shape(data)
 
     # Get the maximum and minimum values for each column
@@ -65,7 +65,7 @@ def mainkNN(k, normalize = True):
     #print(f"Testing set accuracy: {testingAccuracy}")
     return trainingAccuracy, testingAccuracy
 
-def generatekNNGraphs():
+def generatekNNGraphs(fP=filePath):
     print("Generating normalized graphs")
     x = []
     yTrain = []
@@ -78,7 +78,7 @@ def generatekNNGraphs():
         testing = []
         # for each value of k, run the algorithm 20 times
         for _ in range(20):
-            tr, ts = mainkNN(k)
+            tr, ts = mainkNN(k, fP=fP)
             training.append(tr)
             testing.append(ts)
         
