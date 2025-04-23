@@ -135,10 +135,10 @@ if __name__ == "__main__":
     filePath = io.StringIO()
     df.to_csv(filePath, index=False)
     filePath.seek(0) 
-    #kNN(filePath)
+    kNN(filePath)
     #naiveBayes(filePath)
     #decisionTree(filePath)
-    randomForest(filePath, numTrees=30, numFolds=10)
+    #randomForest(filePath, numTrees=30, numFolds=10)
 
     
 

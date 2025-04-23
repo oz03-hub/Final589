@@ -6,6 +6,7 @@ from kfold import stratifiedKFold
 from decisionTree import treeNode, getDistinctValues
 import sklearn
 import randomForest as rF
+import matplotlib.pyplot as plt
 
 def kNN(filePath):
     # kNN Algorithm
@@ -20,22 +21,59 @@ def naiveBayes(filePath):
 
     folds = stratifiedKFold(dataset, LabelIndex=-1, k=10)
 
-    for i in range(len(folds)):
-        train = []
-        test = []
-        for j in range(len(folds)):
-            if i != j:
-                train += folds[j]
+    x = [0.1, 0.5, 1, 2, 5, 10]
+    accuracy = []
+    fscore = []
+    for smooth in x:
+        foldAccuracies = []
+        foldFScores = []
+        for i in range(len(folds)):
+            train = []
+            test = []
+            for j in range(len(folds)):
+                if i != j:
+                    train += folds[j]
+                else:
+                    test += folds[j]
+            model = NaiveBayes(train, labels=labels, smoothParam=smooth)
+            correct = 0
+            instances = dict()
+            for entry in test:
+                classLabel = model.fit(entry)
+                if classLabel == entry[-1]:
+                    correct += 1
+                if classLabel not in instances:
+                    instances[classLabel] = [0,0,0] # TP, FN, FP for each class
+                instances[classLabel][0] += 1 # TP
             else:
-                test += folds[j]
-        model = NaiveBayes(train, labels=labels, smoothParam=1)
-        correct = 0
-        for entry in test:
-            predicted = model.fit(entry)
-            if predicted == entry[-1]:
-                #print(predicted)
-                correct += 1
-        print(f"Fold {i + 1}: {correct / len(test)}")
+                if entry[-1] not in instances:
+                    instances[entry[-1]] = [0,0,0] # TP, FN, FP for each class
+                instances[entry[-1]][1] += 1 # FN
+                if classLabel not in instances:
+                    instances[classLabel] = [0,0,0] # TP, FN, FP for each class
+                instances[classLabel][2] += 1 # FP
+            foldAccuracies.append(correct / len(test))
+            f_score = 0
+            for key in instances.keys():
+                precision = instances[key][0] / (instances[key][0] + instances[key][2]) if (instances[key][0] + instances[key][2]) != 0 else 0
+                recall = instances[key][0] / (instances[key][0] + instances[key][1]) if (instances[key][0] + instances[key][1]) != 0 else 0
+                f_score += (2 * ((precision * recall) / (precision + recall))) if (precision + recall) != 0 else 0
+            f_score /= len(instances.keys())
+            foldFScores.append(f_score)
+        print(f"Alpha: {smooth}, Accuracy: {np.mean(foldAccuracies)}, F-Score: {np.mean(foldFScores)}")
+        accuracy.append(np.mean(foldAccuracies))
+        fscore.append(np.mean(foldFScores))
+    
+    plt.figure(1)
+    plt.plot(x, accuracy, label='Accuracy', marker='o')
+    plt.plot(x, fscore, label='F-Score', marker='o')
+    plt.xlabel("(Value of Smoothing Parameter)")
+    plt.ylabel("(Accuracy and F-Score over training data)")
+    plt.legend()
+    plt.grid(True)
+    plt.title("Standard Naive Bayes")
+    plt.show()
+    
 
 def decisionTree(filePath):
     data = np.loadtxt(filePath, delimiter=',', skiprows=1, dtype=str)
@@ -126,7 +164,8 @@ def randomForest(filePath, numTrees=30, numFolds=10):
     
 
 if __name__ == "__main__":
-    filePath = r'..\data\parkinsons.csv'
-    kNN(filePath)
+    import os
+    filePath = os.path.join(os.path.dirname(__file__), '..', 'data', 'parkinsons.csv')
+    naiveBayes(filePath)
     
 

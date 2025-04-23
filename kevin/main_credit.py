@@ -25,7 +25,7 @@ def kNN(filePath):
 
     transformed = transformer.fit_transform(df)
     transformed_df = pd.DataFrame(transformed, columns=transformer.get_feature_names_out())
-
+    #print(transformed_df)
     csv_buffer = io.StringIO()
     transformed_df.to_csv(csv_buffer, index=False)
     generatekNNGraphs(fP=csv_buffer)
