@@ -1,3 +1,6 @@
+from sklearn import datasets 
+import numpy as np
+import matplotlib.pyplot as plt
 import sys
 from kNN import generatekNNGraphs
 from standardBayes import NaiveBayes
@@ -6,6 +9,8 @@ from kfold import stratifiedKFold
 from decisionTree import treeNode, getDistinctValues
 import sklearn
 import randomForest as rF
+import pandas as pd
+import io
 
 def kNN(filePath):
     # kNN Algorithm
@@ -32,6 +37,7 @@ def naiveBayes(filePath):
         correct = 0
         for entry in test:
             predicted = model.fit(entry)
+            print(predicted)
             if predicted == entry[-1]:
                 #print(predicted)
                 correct += 1
@@ -96,37 +102,43 @@ def randomForest(filePath, numTrees=30, numFolds=10):
 
         randomForest = rF.generateRandomForest(training, numTrees, attributes, distinctVals, columnLabels)
         TP, FP, TN, FN = 0,0,0,0
-
+        correct = 0
         #To Do: Update this to accomodate for multiple classes
         for entry in test:
             result = rF.majorityVote(randomForest, entry)
-            if result == entry[labelIndex] and entry[labelIndex] == '1':
-                TP += 1
-            elif result == entry[labelIndex] and entry[labelIndex] == '0':
-                TN += 1
-            elif result != entry[labelIndex] and entry[labelIndex] == '0':
-                FN += 1
-            elif result != entry[labelIndex] and entry[labelIndex] == '1':
-                FP += 1
+            if result == entry[labelIndex]:
+                correct += 1
+            # if result == entry[labelIndex] and entry[labelIndex] == '1':
+            #     TP += 1
+            # elif result == entry[labelIndex] and entry[labelIndex] == '0':
+            #     TN += 1
+            # elif result != entry[labelIndex] and entry[labelIndex] == '0':
+            #     FN += 1
+            # elif result != entry[labelIndex] and entry[labelIndex] == '1':
+            #     FP += 1
         #print(f"TP: {TP}, FP: {FP}, TN: {TN}, FN: {FN}")
-        accuracies.append((TP + TN) / (TP + FP + TN + FN))
-        precisions.append(TP / (TP + FP))
-        recalls.append(TP / (TP + FN))
-        f_scores.append(2 * (precisions[-1] * recalls[-1]) / (precisions[-1] + recalls[-1]))    
+        accuracies.append(correct / len(test)) 
     print(accuracies)
     print(np.average(accuracies))
-    print(precisions)
-    print(np.average(precisions))
-    print(recalls)
-    print(np.average(recalls))
-    print(f_scores)
-    print(np.average(f_scores))
-    return np.average(accuracies), np.average(precisions), np.average(recalls), np.average(f_scores)
+    return np.average(accuracies)
     # Random Forest Algorithm
     
 
 if __name__ == "__main__":
-    filePath = r'..\data\parkinsons.csv'
-    kNN(filePath)
+    digits = datasets.load_digits(return_X_y=True) 
+    digits_dataset_X = pd.DataFrame(digits[0])
+    digits_dataset_y = pd.DataFrame(digits[1])
+    digits_dataset_X.columns = [str(column) + '_num' for column in digits_dataset_X.columns]
+    digits_dataset_y = digits_dataset_y.rename(columns={0: 'label'})
+    
+    df = pd.concat([pd.DataFrame(digits_dataset_X), pd.DataFrame(digits_dataset_y)], axis=1)
+    filePath = io.StringIO()
+    df.to_csv(filePath, index=False)
+    filePath.seek(0) 
+    #kNN(filePath)
+    #naiveBayes(filePath)
+    #decisionTree(filePath)
+    randomForest(filePath, numTrees=30, numFolds=10)
+
     
 

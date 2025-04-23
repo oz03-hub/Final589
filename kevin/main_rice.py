@@ -7,12 +7,13 @@ from decisionTree import treeNode, getDistinctValues
 import sklearn
 import randomForest as rF
 
+# VERY slow
 def kNN(filePath):
     # kNN Algorithm
     generatekNNGraphs(fP=filePath)
 
 def naiveBayes(filePath):
-    dataset = np.loadtxt(filePath, delimiter=",", skiprows=1)
+    dataset = np.loadtxt(filePath, delimiter=",", skiprows=1, dtype=str)
     labels = []
     for i in range(len(dataset[0]) - 1):
         labels.append('num')
@@ -100,13 +101,13 @@ def randomForest(filePath, numTrees=30, numFolds=10):
         #To Do: Update this to accomodate for multiple classes
         for entry in test:
             result = rF.majorityVote(randomForest, entry)
-            if result == entry[labelIndex] and entry[labelIndex] == '1':
+            if result == entry[labelIndex] and entry[labelIndex] == 'Cammeo':
                 TP += 1
-            elif result == entry[labelIndex] and entry[labelIndex] == '0':
+            elif result == entry[labelIndex] and entry[labelIndex] == 'Osmancik':
                 TN += 1
-            elif result != entry[labelIndex] and entry[labelIndex] == '0':
+            elif result != entry[labelIndex] and entry[labelIndex] == 'Osmancik':
                 FN += 1
-            elif result != entry[labelIndex] and entry[labelIndex] == '1':
+            elif result != entry[labelIndex] and entry[labelIndex] == 'Cammeo':
                 FP += 1
         #print(f"TP: {TP}, FP: {FP}, TN: {TN}, FN: {FN}")
         accuracies.append((TP + TN) / (TP + FP + TN + FN))
@@ -126,7 +127,7 @@ def randomForest(filePath, numTrees=30, numFolds=10):
     
 
 if __name__ == "__main__":
-    filePath = r'..\data\parkinsons.csv'
+    filePath = r'..\data\rice.csv'
     kNN(filePath)
     
 

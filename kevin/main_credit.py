@@ -6,17 +6,36 @@ from kfold import stratifiedKFold
 from decisionTree import treeNode, getDistinctValues
 import sklearn
 import randomForest as rF
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.compose import make_column_transformer
+import pandas as pd
+import io
 
+# VERY slow
 def kNN(filePath):
+
     # kNN Algorithm
-    generatekNNGraphs(fP=filePath)
+    # One-hot encoding multiple columns
+    df = pd.read_csv(filePath)
+    df = df.dropna()
+
+    transformer = make_column_transformer(
+        (OneHotEncoder(sparse_output=False), ['attr1_cat', 'attr4_cat', 'attr5_cat', 'attr6_cat', 'attr7_cat','attr9_cat', 'attr10_cat', 'attr11_cat', 'attr12_cat', 'attr13_cat']),
+        remainder='passthrough')
+
+    transformed = transformer.fit_transform(df)
+    transformed_df = pd.DataFrame(transformed, columns=transformer.get_feature_names_out())
+
+    csv_buffer = io.StringIO()
+    transformed_df.to_csv(csv_buffer, index=False)
+    generatekNNGraphs(fP=csv_buffer)
 
 def naiveBayes(filePath):
-    dataset = np.loadtxt(filePath, delimiter=",", skiprows=1)
-    labels = []
-    for i in range(len(dataset[0]) - 1):
-        labels.append('num')
-    labels.append('class')
+    dataset = np.loadtxt(filePath, delimiter=",", dtype=str)
+    labels = list(map(lambda x : x.split('_')[-1], dataset[0]))
+    #print(labels)
+    labels[labels.index('label')] = 'class'
+    dataset = np.delete(dataset, 0, axis=0) # remove the header row
 
     folds = stratifiedKFold(dataset, LabelIndex=-1, k=10)
 
@@ -32,18 +51,18 @@ def naiveBayes(filePath):
         correct = 0
         for entry in test:
             predicted = model.fit(entry)
+            #print(predicted)
             if predicted == entry[-1]:
                 #print(predicted)
                 correct += 1
         print(f"Fold {i + 1}: {correct / len(test)}")
 
 def decisionTree(filePath):
-    data = np.loadtxt(filePath, delimiter=',', skiprows=1, dtype=str)
+    data = np.loadtxt(filePath, delimiter=',', dtype=str)
     _, cols = np.shape(data)
-    labels = []
-    for i in range(len(data[0]) - 1):
-        labels.append('num')
-    labels.append('label')
+    labels = list(map(lambda x : x.split('_')[-1], data[0]))
+    data = np.delete(data, 0, axis=0) # remove the header row
+
     distinctVals = getDistinctValues(data, labels)
 
     testingAccuracy, trainingAccuracy = [], []
@@ -72,10 +91,7 @@ def decisionTree(filePath):
 
 def randomForest(filePath, numTrees=30, numFolds=10):
     data = np.loadtxt(filePath, delimiter=',', dtype=str)
-    columnLabels = []
-    for i in range(len(data[0]) - 1):
-        columnLabels.append('num')
-    columnLabels.append('label')
+    columnLabels = list(map(lambda x : x.split('_')[-1], data[0]))
     labelIndex = columnLabels.index('label')
 
     attributes = [i for i, label in enumerate(columnLabels) if label != 'label']
@@ -126,7 +142,7 @@ def randomForest(filePath, numTrees=30, numFolds=10):
     
 
 if __name__ == "__main__":
-    filePath = r'..\data\parkinsons.csv'
+    filePath = r'..\data\credit_approval.csv'
     kNN(filePath)
     
 

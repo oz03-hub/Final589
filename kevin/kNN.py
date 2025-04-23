@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sklearn
 import argparse
+import io
 
 filePath = r'..\data\parkinsons.csv'
 
@@ -16,17 +17,24 @@ def kNNAlgorithm(dataset, unknownInstance, k):
     # sort by euclidean distance, ascending
     distClassTuples.sort(key= lambda x: x[1])
 
-    count = 0
+    count = dict()
     for i in range(k):
-        count += distClassTuples[i][0]
+        count[distClassTuples[i]] = count.get(distClassTuples[i], 0) + 1
     
     # Return 1 if 1 is the classifier majority, else 0 (then 0 is majority)
-    return 1 if count > k / 2 else 0
+    return max(count, key=count.get)[0]
 
 def mainkNN(k, normalize = True, fP = filePath):
     # load the csv / dataset into a numpy 2d array
-    data = np.loadtxt(fP, delimiter=',', skiprows=1)
+    if isinstance(fP, io.StringIO):
+        fP.seek(0)
+    data = np.loadtxt(fP, delimiter=',', skiprows=1, dtype=str)
+    #print(data[0])
     _, cols = np.shape(data)
+    data = data.astype(object)
+    for i in range(cols - 1):
+        data[:, i] = data[:, i].astype(float)
+    #print(data[0])
 
     # Get the maximum and minimum values for each column
     maxCols = [np.max(data[:, i]) for i in range(cols - 1)]
@@ -38,7 +46,7 @@ def mainkNN(k, normalize = True, fP = filePath):
     if normalize:
         for row in data:
             for i in range(cols - 1):
-                row[i] = (row[i] - minCols[i]) / (maxCols[i] - minCols[i])
+                row[i] = (row[i] - minCols[i]) / (maxCols[i] - minCols[i]) if maxCols[i] - minCols[i] != 0 else 0
     
     # Part a: shuffling the dataset
     shuffled = sklearn.utils.shuffle(data)
@@ -53,16 +61,17 @@ def mainkNN(k, normalize = True, fP = filePath):
         trainingCorrect += 1 if classLabel == entry[-1] else 0
     
     trainingAccuracy = trainingCorrect / len(train)
-    #print(f"Training set accuracy: {trainingAccuracy}")
+    print(f"Training set accuracy: {trainingAccuracy}")
 
     # Running kNN algorithm on testing instances
     testingCorrect = 0
     for entry in test:
         classLabel = kNNAlgorithm(train, entry, k)
+        print(classLabel)
         testingCorrect += 1 if classLabel == entry[-1] else 0
     
     testingAccuracy = testingCorrect / len(test)
-    #print(f"Testing set accuracy: {testingAccuracy}")
+    print(f"Testing set accuracy: {testingAccuracy}")
     return trainingAccuracy, testingAccuracy
 
 def generatekNNGraphs(fP=filePath):
