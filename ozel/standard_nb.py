@@ -109,4 +109,4 @@ class NaiveBayes:
             elif prediction == 0 and label == 1:
                 fn += 1
 
-        return tp, tn, fp, fn
+        return tp, fp, fn, tn

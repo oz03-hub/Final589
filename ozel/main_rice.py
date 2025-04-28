@@ -25,6 +25,7 @@ def run_rf():
     print("Random Forest for Rice Dataset")
     accuracies = []
     f1_scores = []
+    t= ""
     for params in param_grid:
         params_dict = dict(zip(param_names, params))
 
@@ -48,6 +49,8 @@ def run_rf():
         print(f"\tAvg F1 Score: {avg_f1_score}")
         print()
 
+        t += f"\tParams: {params_dict}\n\tAvg Accuracy: {avg_accuracy}\n\tAvg F1 Score: {avg_f1_score}\n"
+
         if avg_accuracy > best_accuracy:
             best_accuracy = avg_accuracy
             best_f1_score = avg_f1_score
@@ -61,6 +64,8 @@ def run_rf():
     print(f"Best F1 Score: {best_f1_score}")
 
     with open("ozel/results/rice_rf.txt", "w") as f:
+        f.write(t)
+        f.write("Best metrics'n")
         f.write(f"Best Params: {best_params}\n")
         f.write(f"Best Accuracy: {best_accuracy}\n")
         f.write(f"Best F1 Score: {best_f1_score}\n")
@@ -93,7 +98,7 @@ def run_knn():
 
     accuracies = []
     f1_scores = []
-
+    t = ""
     print("KNN for Rice Dataset")
     for params in param_grid:
         params_dict = dict(zip(param_names, params))
@@ -126,6 +131,8 @@ def run_knn():
         print(f"\tAvg F1 Score: {avg_f1_score}")
         print()
 
+        t += f"\tParams: {params_dict}\n\tAvg Accuracy: {avg_accuracy}\n\tAvg F1 Score: {avg_f1_score}\n"
+
         if avg_accuracy > best_accuracy:
             best_accuracy = avg_accuracy
             best_f1_score = avg_f1_score
@@ -139,6 +146,8 @@ def run_knn():
     print(f"Best F1 Score: {best_f1_score}")
 
     with open("ozel/results/rice_knn.txt", "w") as f:
+        f.write(t)
+        f.write("Best metrics\n")
         f.write(f"Best Params: {best_params}\n")
         f.write(f"Best Accuracy: {best_accuracy}\n")
         f.write(f"Best F1 Score: {best_f1_score}\n")
@@ -171,6 +180,7 @@ def run_nb():
 
     accuracies = []
     f1_scores = []
+    t = ""
     print("Naive Bayes for Rice Dataset")
     for params in param_grid:
         params_dict = dict(zip(param_names, params))
@@ -181,7 +191,7 @@ def run_nb():
             nb_model = NaiveBayes(alpha=params_dict["alpha"])
             nb_model.fit(train_split.drop(columns=["label"]), train_split["label"])
             
-            tp, tn, fp, fn = nb_model.confusion_matrix(test_split.drop(columns=["label"]), test_split["label"], label_map={"Cammeo": 0, "Osmancik": 1})
+            tp, fp, fn, tn = nb_model.confusion_matrix(test_split.drop(columns=["label"]), test_split["label"], label_map={"Cammeo": 0, "Osmancik": 1})
             accuracy = (tp + tn) / (tp + tn + fp + fn)
             precision = tp / (tp + fp)
             recall = tp / (tp + fn)
@@ -196,6 +206,8 @@ def run_nb():
         print(f"\tAvg Accuracy: {avg_accuracy}")
         print(f"\tAvg F1 Score: {avg_f1_score}")
         print()
+    
+        t += f"\tParams: {params_dict}\n\tAvg Accuracy: {avg_accuracy}\n\tAvg F1 Score: {avg_f1_score}\n"
 
         if avg_accuracy > best_accuracy:
             best_accuracy = avg_accuracy
@@ -210,6 +222,8 @@ def run_nb():
     print(f"Best F1 Score: {best_f1_score}")
 
     with open("ozel/results/rice_nb.txt", "w") as f:
+        f.write(t)
+        f.write("Best metrics\n")
         f.write(f"Best Params: {best_params}\n")
         f.write(f"Best Accuracy: {best_accuracy}\n")
         f.write(f"Best F1 Score: {best_f1_score}\n")

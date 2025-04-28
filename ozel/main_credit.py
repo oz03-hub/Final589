@@ -4,6 +4,7 @@ from itertools import product
 from random_forest import RandomForest
 from knn import KNN, normalize_data
 from standard_nb import NaiveBayes
+from neural_net import NeuralNet
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import make_column_transformer
 import matplotlib.pyplot as plt
@@ -31,7 +32,7 @@ def run_knn():
 
     accuracies = []
     f1_scores = []
-
+    t = ""
     print("KNN for Credit Approval Dataset")
     for params in param_grid:
         params_dict = dict(zip(param_names, params))
@@ -63,6 +64,8 @@ def run_knn():
         print(f"\tAvg F1 Score: {avg_f1_score}")
         print()
 
+        t += f"\tParams: {params_dict}\n\tAvg Accuracy: {avg_accuracy}\n\tAvg F1 Score: {avg_f1_score}\n"
+
         if avg_accuracy > best_accuracy:
             best_accuracy = avg_accuracy
             best_f1_score = avg_f1_score
@@ -76,6 +79,8 @@ def run_knn():
     print(f"Best F1 Score: {best_f1_score}")
 
     with open("ozel/results/credit_knn.txt", "w") as f:
+        f.write(t)
+        f.write("Best metrics\n")
         f.write(f"Best Params: {best_params}\n")
         f.write(f"Best Accuracy: {best_accuracy}\n")
         f.write(f"Best F1 Score: {best_f1_score}\n")
@@ -108,7 +113,7 @@ def run_rf():
 
     accuracies = []
     f1_scores = []
-
+    t = ""
     print("Random Forest for Credit Approval Dataset")
     for params in param_grid:
         params_dict = dict(zip(param_names, params))
@@ -134,6 +139,8 @@ def run_rf():
         print(f"\tAvg F1 Score: {avg_f1_score}")
         print()
 
+        t += f"\tParams: {params_dict}\n\tAvg Accuracy: {avg_accuracy}\n\tAvg F1 Score: {avg_f1_score}\n"
+
         if avg_accuracy > best_accuracy:
             best_accuracy = avg_accuracy
             best_f1_score = avg_f1_score
@@ -147,6 +154,8 @@ def run_rf():
     print(f"Best F1 Score: {best_f1_score}")
 
     with open("ozel/results/credit_rf.txt", "w") as f:
+        f.write(t)
+        f.write("Best metrics\n")
         f.write(f"Best Params: {best_params}\n")
         f.write(f"Best Accuracy: {best_accuracy}\n")
         f.write(f"Best F1 Score: {best_f1_score}\n")
@@ -159,6 +168,78 @@ def run_rf():
     plt.legend()
     plt.grid()
     plt.savefig("ozel/figures/credit_rf.png")
+    plt.clf()
+
+def run_nn():
+    credit_df = pd.read_csv("data/credit_approval.csv")
+    cat_columns = [col for col in credit_df.columns if col.endswith("cat")]
+    transformer = make_column_transformer((OneHotEncoder(sparse_output=False), cat_columns), remainder="passthrough")
+    credit_df = transformer.fit_transform(credit_df)
+    credit_df = pd.DataFrame(credit_df, columns=transformer.get_feature_names_out())
+    credit_df.rename(columns={"remainder__label": "label"}, inplace=True)
+    credit_df = normalize_data(credit_df)
+    splitter = StratifiedKFold(k=10)
+
+    models = [
+        NeuralNet(layers=[68, 100, 1], step_size=0.1, lambda_reg=0.1, batch_size=100, epochs=30),
+        NeuralNet(layers=[68, 80, 100, 80, 40, 1], step_size=0.1, lambda_reg=0.1, batch_size=100, epochs=30),
+        NeuralNet(layers=[68, 80, 80, 40, 1], step_size=0.1, lambda_reg=0.1, batch_size=100, epochs=50),
+        NeuralNet(layers=[68, 100, 1], step_size=0.1, lambda_reg=0.01, batch_size=100, epochs=50),
+        NeuralNet(layers=[68, 150, 40, 20, 1], step_size=0.1, lambda_reg=0.01, batch_size=100, epochs=50),
+    ]
+
+    best_model = None
+    best_accuracy = 0
+    best_f1_score = 0
+    best_losses = None
+
+    for model in models:
+        avg_accuracy = 0
+        avg_f1_score = 0
+        losses = []
+        for train_split, test_split in splitter.get_splits(credit_df):
+            X_train = train_split.drop(columns=["label"]).to_numpy()
+            y_train = train_split["label"].to_numpy()
+
+            X_test = test_split.drop(columns=["label"]).to_numpy()
+            y_test = test_split["label"].to_numpy()
+
+            loss = model.fit(X_train, y_train)
+            tp, fp, fn, tn = model.confusion_matrix(X_test, y_test)
+            accuracy = (tp + tn) / (tp + tn + fp + fn)
+            precision = tp / (tp + fp) if tp + fp != 0 else 0
+            recall = tp / (tp + fn) if tp + fn != 0 else 0
+            f1_score = 2 * precision * recall / (precision + recall) if precision + recall != 0 else 0
+
+            avg_accuracy += accuracy
+            avg_f1_score += f1_score
+            losses.append(loss)
+        
+        avg_accuracy /= 10
+        avg_f1_score /= 10
+        
+        if avg_accuracy > best_accuracy:
+            best_model = model
+            best_accuracy = avg_accuracy
+            best_f1_score = avg_f1_score
+            best_losses = losses
+    
+    print(f"Best Model {best_model.model_str()}")
+    print(f"Best Accuracy: {best_accuracy}")
+    print(f"Best F1 Score: {best_f1_score}")
+
+    with open("ozel/results/credit_nn.txt", "w") as f:
+        f.write(f"Best Model {best_model.model_str()}\n")
+        f.write(f"Best Accuracy: {best_accuracy}\n")
+        f.write(f"Best F1 Score: {best_f1_score}\n")
+    
+    for i, l in enumerate(best_losses):
+        plt.plot(l, label=f"Fold {i}")
+    plt.xlabel("Epochs")
+    plt.ylabel("Regualrized J")
+    plt.legend()
+    plt.grid()
+    plt.savefig("ozel/figures/credit_nn.png")
     plt.clf()
 
 def run_nb():
@@ -179,7 +260,7 @@ def run_nb():
 
     accuracies = []
     f1_scores = []
-
+    t = ""
     print("Naive Bayes for Credit Approval Dataset")
     for params in param_grid:
         params_dict = dict(zip(param_names, params))
@@ -211,6 +292,7 @@ def run_nb():
         print(f"\tAvg Accuracy: {avg_accuracy}")
         print(f"\tAvg F1 Score: {avg_f1_score}")
         print()
+        t += f"\tParams: {params_dict}\n\tAvg Accuracy: {avg_accuracy}\n\tAvg F1 Score: {avg_f1_score}\n"
 
         if avg_accuracy > best_accuracy:
             best_accuracy = avg_accuracy
@@ -225,6 +307,8 @@ def run_nb():
     print(f"Best F1 Score: {best_f1_score}")
 
     with open("ozel/results/credit_nb.txt", "w") as f:
+        f.write(t)
+        f.write("Best metrics\n")
         f.write(f"Best Params: {best_params}\n")
         f.write(f"Best Accuracy: {best_accuracy}\n")
         f.write(f"Best F1 Score: {best_f1_score}\n")
@@ -242,4 +326,5 @@ def run_nb():
 if __name__ == "__main__":
     run_knn()
     run_rf()
+    # run_nn()
     run_nb()

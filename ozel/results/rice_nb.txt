@@ -1,3 +1,22 @@
-Best Params: {'alpha': 2}
-Best Accuracy: 0.9175853018372703
-Best F1 Score: 0.9283478211858078
+	Params: {'alpha': 0.1}
+	Avg Accuracy: 0.9173228346456692
+	Avg F1 Score: 0.9281011298553903
+	Params: {'alpha': 0.5}
+	Avg Accuracy: 0.9173228346456692
+	Avg F1 Score: 0.9280385751117818
+	Params: {'alpha': 1}
+	Avg Accuracy: 0.916272965879265
+	Avg F1 Score: 0.9271033962082447
+	Params: {'alpha': 2}
+	Avg Accuracy: 0.9173228346456692
+	Avg F1 Score: 0.9280741502441197
+	Params: {'alpha': 5}
+	Avg Accuracy: 0.9173228346456692
+	Avg F1 Score: 0.9280303622821464
+	Params: {'alpha': 10}
+	Avg Accuracy: 0.9170603674540683
+	Avg F1 Score: 0.9278780117393282
+Best metrics
+Best Params: {'alpha': 0.1}
+Best Accuracy: 0.9173228346456692
+Best F1 Score: 0.9281011298553903

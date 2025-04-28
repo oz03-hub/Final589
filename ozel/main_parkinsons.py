@@ -25,6 +25,7 @@ def run_rf():
     print("Random Forest for Parkinson's Dataset")
     accuracies = []
     f1_scores = []
+    t = ""
     for params in param_grid:
         params_dict = dict(zip(param_names, params))
 
@@ -48,6 +49,8 @@ def run_rf():
         print(f"\tAvg F1 Score: {avg_f1_score}")
         print()
 
+        t += f"\tParams: {params_dict}\n\tAvg Accuracy: {avg_accuracy}\n\tAvg F1 Score: {avg_f1_score}\n"
+
         if avg_accuracy > best_accuracy:
             best_accuracy = avg_accuracy
             best_f1_score = avg_f1_score
@@ -61,6 +64,8 @@ def run_rf():
     print(f"Best F1 Score: {best_f1_score}")
 
     with open("ozel/results/parkinsons_rf.txt", "w") as f:
+        f.write(t)
+        f.write("Best metrics\n")
         f.write(f"Best Params: {best_params}\n")
         f.write(f"Best Accuracy: {best_accuracy}\n")
         f.write(f"Best F1 Score: {best_f1_score}\n")
@@ -93,7 +98,7 @@ def run_knn():
 
     accuracies = []
     f1_scores = []
-
+    t = ""
     print("KNN for Parkinson's Dataset")
     for params in param_grid:
         params_dict = dict(zip(param_names, params))
@@ -124,6 +129,8 @@ def run_knn():
         print(f"\tAvg F1 Score: {avg_f1_score}")
         print()
 
+        t += f"\tParams: {params_dict}\n\tAvg Accuracy: {avg_accuracy}\n\tAvg F1 Score: {avg_f1_score}\n"
+
         if avg_accuracy > best_accuracy:
             best_accuracy = avg_accuracy
             best_f1_score = avg_f1_score
@@ -137,6 +144,8 @@ def run_knn():
     print(f"Best F1 Score: {best_f1_score}")
 
     with open("ozel/results/parkinsons_knn.txt", "w") as f:
+        f.write(t)
+        f.write("Best metrics\n")
         f.write(f"Best Params: {best_params}\n")
         f.write(f"Best Accuracy: {best_accuracy}\n")
         f.write(f"Best F1 Score: {best_f1_score}\n")
@@ -169,7 +178,7 @@ def run_nb():
 
     accuracies = []
     f1_scores = []
-
+    t = ""
     print("Naive Bayes for Parkinson's Dataset")
     for params in param_grid:
         params_dict = dict(zip(param_names, params))
@@ -195,6 +204,8 @@ def run_nb():
         print(f"\tAvg F1 Score: {avg_f1_score}")
         print()
 
+        t += f"\tParams: {params_dict}\n\tAvg Accuracy: {avg_accuracy}\n\tAvg F1 Score: {avg_f1_score}\n"
+
         if avg_accuracy > best_accuracy:
             best_accuracy = avg_accuracy
             best_f1_score = avg_f1_score
@@ -208,6 +219,8 @@ def run_nb():
     print(f"Best F1 Score: {best_f1_score}")
 
     with open("ozel/results/parkinsons_nb.txt", "w") as f:
+        f.write(t)
+        f.write("Best metrics\n")
         f.write(f"Best Params: {best_params}\n")
         f.write(f"Best Accuracy: {best_accuracy}\n")
         f.write(f"Best F1 Score: {best_f1_score}\n")
@@ -223,6 +236,6 @@ def run_nb():
     plt.clf()
 
 if __name__ == "__main__":
-    # run_rf()
+    run_rf()
     run_knn()
     run_nb()
