@@ -72,7 +72,7 @@ def run_rf():
     
     plt.plot(hyperparams["n_tree"], accuracies, label="Accuracy", marker="o")
     plt.plot(hyperparams["n_tree"], f1_scores, label="F1 Score", marker="o")
-    plt.ylim(min(accuracies) - 0.05, max(accuracies) + 0.05)
+    plt.ylim(min(*accuracies, *f1_scores) - 0.05, max(*accuracies, *f1_scores) + 0.05)
     plt.xlabel("Number of Trees")
     plt.ylabel("Accuracy and F1 Score")
     plt.legend()
@@ -152,7 +152,7 @@ def run_knn():
 
     plt.plot(hyperparams["k"], accuracies, label="Accuracy", marker="o")
     plt.plot(hyperparams["k"], f1_scores, label="F1 Score", marker="o")
-    plt.ylim(min(accuracies) - 0.05, max(accuracies) + 0.05)
+    plt.ylim(min(*accuracies, *f1_scores) - 0.05, max(*accuracies, *f1_scores) + 0.05)
     plt.xlabel("Number of Neighbors")
     plt.ylabel("Accuracy and F1 Score")
     plt.legend()
@@ -227,7 +227,7 @@ def run_nb():
 
     plt.plot(hyperparams["alpha"], accuracies, label="Accuracy", marker="o")
     plt.plot(hyperparams["alpha"], f1_scores, label="F1 Score", marker="o")
-    plt.ylim(min(accuracies) - 0.05, max(accuracies) + 0.05)
+    plt.ylim(min(*accuracies, *f1_scores) - 0.05, max(*accuracies, *f1_scores) + 0.05)
     plt.xlabel("Alpha")
     plt.ylabel("Accuracy and F1 Score")
     plt.legend()
