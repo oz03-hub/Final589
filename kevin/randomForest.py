@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 
-filePath = r'..\data\credit_approval.csv'
+filePath = r'..\data\rice.csv'
 # To Do: Alter filePath based on dataset you want to test
 
 class treeNode:
@@ -19,7 +19,7 @@ class treeNode:
     
     def addLabel(self, label, avg):
         self.label = label
-        self.isNumeric = self.columnLabels[int(label)] == 'num'
+        self.isNumeric = avg != None
         self.avg = avg
 
     def addChild(self, child, edgeLabel):
@@ -80,8 +80,7 @@ class treeNode:
             counts[entry[labelIndex]] = counts.get(entry[labelIndex], 0) + 1
 
         # To Do: Alter stopping criteria (max depth + minimal split)
-        if len(counts) == 1 or not self.attributes:
-        #or self.depth > 15 or len(self.dataset) < 3:
+        if len(counts) == 1 or not self.attributes or self.depth > 15 or len(self.dataset) < 3:
             self.addLabel(max(counts, key = counts.get), None)
             return self
 
@@ -217,16 +216,19 @@ def main(numTrees = 1, numFolds = 5):
 
         randomForest = generateRandomForest(training, numTrees, attributes, distinctVals, columnLabels)
         TP, FP, TN, FN = 0,0,0,0
+
+        #To Do: Update this to accomodate for multiple classes
         for entry in test:
             result = majorityVote(randomForest, entry)
-            if result == entry[labelIndex] and entry[labelIndex] == '1':
+            if result == entry[labelIndex] and entry[labelIndex] == 'Cammeo':
                 TP += 1
-            elif result == entry[labelIndex] and entry[labelIndex] == '0':
+            elif result == entry[labelIndex] and entry[labelIndex] == 'Osmancik':
                 TN += 1
-            elif result != entry[labelIndex] and entry[labelIndex] == '1':
+            elif result != entry[labelIndex] and entry[labelIndex] == 'Cammeo':
                 FN += 1
-            elif result != entry[labelIndex] and entry[labelIndex] == '0':
+            elif result != entry[labelIndex] and entry[labelIndex] == 'Osmancik':
                 FP += 1
+        #print(f"TP: {TP}, FP: {FP}, TN: {TN}, FN: {FN}")
         accuracies.append((TP + TN) / (TP + FP + TN + FN))
         precisions.append(TP / (TP + FP))
         recalls.append(TP / (TP + FN))
