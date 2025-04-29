@@ -2,7 +2,7 @@ import pandas as pd
 from kfold import StratifiedKFold
 from itertools import product
 from knn import KNN, normalize_data
-from standard_nb import NaiveBayes
+from random_forest import RandomForest
 from neural_net import NeuralNet
 import matplotlib.pyplot as plt
 import numpy as np
@@ -36,6 +36,161 @@ def f1(predictions, actual):
         f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
         f1s += f1
     return f1s / len(labels)
+
+def run_knn():
+    digits = datasets.load_digits(return_X_y=True)
+    df = pd.DataFrame(digits[0])
+    df["y"] = digits[1]
+    df.columns = df.columns.astype(str)
+
+    splitter = StratifiedKFold(k=10, class_column="y")
+
+    hyperparams = {
+        "k": [1, 3, 5, 10, 20, 30],
+    }
+
+    param_grid = product(*hyperparams.values())
+    param_names = list(hyperparams.keys())
+
+    best_params = None
+    best_accuracy = 0
+    best_f1_score = 0
+
+    accuracies = []
+    f1_scores = []
+    t = ""
+    print("KNN for Parkinson's Dataset")
+    for params in param_grid:
+        params_dict = dict(zip(param_names, params))
+        
+        avg_accuracy = 0
+        avg_f1_score = 0
+        for train_split, test_split in splitter.get_splits(df):
+            X_train = train_split.drop(columns=["y"])
+            y_train = train_split["y"]
+            X_test = test_split.drop(columns=["y"])
+            y_test = test_split["y"]
+
+            knn_model = KNN(k=params_dict["k"])
+            knn_model.fit(X_train, y_train)
+
+            predictions = knn_model.predict(X_test)
+            actual = y_test.to_list()
+            avg_accuracy += accuracy(predictions, actual)
+            avg_f1_score += f1(predictions, actual)
+        
+        avg_accuracy /= 10
+        avg_f1_score /= 10
+        print(f"\tParams: {params_dict}")
+        print(f"\tAvg Accuracy: {avg_accuracy}")
+        print(f"\tAvg F1 Score: {avg_f1_score}")
+        print()
+
+        t += f"\tParams: {params_dict}\n\tAvg Accuracy: {avg_accuracy}\n\tAvg F1 Score: {avg_f1_score}\n"
+
+        if avg_accuracy > best_accuracy:
+            best_accuracy = avg_accuracy
+            best_f1_score = avg_f1_score
+            best_params = params_dict
+
+        accuracies.append(avg_accuracy)
+        f1_scores.append(avg_f1_score)
+
+    print(f"Best Params: {best_params}")
+    print(f"Best Accuracy: {best_accuracy}")
+    print(f"Best F1 Score: {best_f1_score}")
+
+    with open("ozel/results/mnist_knn.txt", "w") as f:
+        f.write(t)
+        f.write("Best metrics\n")
+        f.write(f"Best Params: {best_params}\n")
+        f.write(f"Best Accuracy: {best_accuracy}\n")
+        f.write(f"Best F1 Score: {best_f1_score}\n")
+    
+    plt.plot(hyperparams["k"], accuracies, label="Accuracy", marker="o")
+    plt.plot(hyperparams["k"], f1_scores, label="F1 Score", marker="o")
+    plt.ylim(min(*accuracies, *f1_scores) - 0.05, max(*accuracies, *f1_scores) + 0.05)
+    plt.xlabel("Number of Trees")
+    plt.ylabel("Accuracy and F1 Score")
+    plt.legend()
+    plt.grid()
+    plt.savefig("ozel/figures/mnist_knn.png")
+    plt.clf()
+
+def run_rf():
+    digits = datasets.load_digits(return_X_y=True)
+    df = pd.DataFrame(digits[0])
+    df["y"] = digits[1]
+    df.columns = df.columns.astype(str)
+
+    splitter = StratifiedKFold(k=10, class_column="y")
+
+    hyperparams = {
+        "n_tree": [2, 5, 10, 20, 30, 50]
+    }
+
+    param_grid = product(*hyperparams.values())
+    param_names = list(hyperparams.keys())
+    
+    best_params = None
+    best_accuracy = 0
+    best_f1_score = 0
+
+    print("Random Forest for Parkinson's Dataset")
+    accuracies = []
+    f1_scores = []
+    t = ""
+    for params in param_grid:
+        params_dict = dict(zip(param_names, params))
+
+        avg_accuracy = 0
+        avg_f1_score = 0
+        for train_split, test_split in splitter.get_splits(df):
+            rf_model = RandomForest(n_tree=params_dict["n_tree"], data=train_split, numeric_end="", class_column="y", stopping_criterion_hyperparameter=0.1)
+
+            predictions = rf_model.predict_df(test_split)
+            actual = test_split["y"].to_list()
+            avg_accuracy += accuracy(predictions, actual)
+            avg_f1_score += f1(predictions, actual)
+        
+        avg_accuracy /= 10
+        avg_f1_score /= 10
+        print(f"\tParams: {params_dict}")
+        print(f"\tAvg Accuracy: {avg_accuracy}")
+        print(f"\tAvg F1 Score: {avg_f1_score}")
+        print()
+
+        t += f"\tParams: {params_dict}\n\tAvg Accuracy: {avg_accuracy}\n\tAvg F1 Score: {avg_f1_score}\n"
+
+        if avg_accuracy > best_accuracy:
+            best_accuracy = avg_accuracy
+            best_f1_score = avg_f1_score
+            best_params = params_dict
+
+        accuracies.append(avg_accuracy)
+        f1_scores.append(avg_f1_score)
+
+    print(f"Best Params: {best_params}")
+    print(f"Best Accuracy: {best_accuracy}")
+    print(f"Best F1 Score: {best_f1_score}")
+
+    with open("ozel/results/mnist_rf.txt", "w") as f:
+        f.write(t)
+        f.write("Best metrics\n")
+        f.write(f"Best Params: {best_params}\n")
+        f.write(f"Best Accuracy: {best_accuracy}\n")
+        f.write(f"Best F1 Score: {best_f1_score}\n")
+    
+    plt.plot(hyperparams["n_tree"], accuracies, label="Accuracy", marker="o")
+    plt.plot(hyperparams["n_tree"], f1_scores, label="F1 Score", marker="o")
+    plt.ylim(min(*accuracies, *f1_scores) - 0.05, max(*accuracies, *f1_scores) + 0.05)
+    plt.xlabel("Number of Trees")
+    plt.ylabel("Accuracy and F1 Score")
+    plt.legend()
+    plt.grid()
+    plt.savefig("ozel/figures/mnist_rf.png")
+    plt.clf()
+
 
 def run_nn():
     digits = datasets.load_digits(return_X_y=True)
@@ -108,4 +263,7 @@ def run_nn():
         f.write(f"Best F1 Score: {best_f1_score}\n")
 
 if __name__ == "__main__":
-    run_nn()
+    # run_nn()
+    # run_rf()
+    run_knn()
+

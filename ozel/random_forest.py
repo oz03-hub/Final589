@@ -270,6 +270,9 @@ class RandomForest:
             return random.choice(list(counts.keys()))
         else:
             return counts.most_common(1)[0][0]
+    
+    def predict_df(self, X: pd.DataFrame):
+        return X.apply(lambda x: self.predict(x), axis=1)
 
     def confusion_matrix(self, X: pd.DataFrame, label_map: dict[str, int] = None):
         # HW2 Code

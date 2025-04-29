@@ -1,0 +1,22 @@
+	Params: {'n_tree': 2}
+	Avg Accuracy: 0.7569115450277422
+	Avg F1 Score: 0.7543600593569112
+	Params: {'n_tree': 5}
+	Avg Accuracy: 0.8950064020486556
+	Avg F1 Score: 0.8938781314453997
+	Params: {'n_tree': 10}
+	Avg Accuracy: 0.938956466069142
+	Avg F1 Score: 0.9387373791034046
+	Params: {'n_tree': 20}
+	Avg Accuracy: 0.9594110115236877
+	Avg F1 Score: 0.9590104103938648
+	Params: {'n_tree': 30}
+	Avg Accuracy: 0.9685766111822449
+	Avg F1 Score: 0.9684887970968779
+	Params: {'n_tree': 50}
+	Avg Accuracy: 0.9720097097737941
+	Avg F1 Score: 0.9717236304023285
+Best metrics
+Best Params: {'n_tree': 50}
+Best Accuracy: 0.9720097097737941
+Best F1 Score: 0.9717236304023285
