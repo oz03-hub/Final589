@@ -83,6 +83,10 @@ def run_rf():
 def run_knn():
     # KNN for Rice Dataset
     rice_df = pd.read_csv("data/rice.csv")
+    features = rice_df.drop(columns=["label"])
+    labels = rice_df["label"]
+    features = normalize_data(features)
+    rice_df = pd.concat([features, labels.reset_index(drop=True)], axis=1)
     splitter = StratifiedKFold(k=10)
 
     hyperparams = {
@@ -106,9 +110,9 @@ def run_knn():
         avg_accuracy = 0
         avg_f1_score = 0
         for train_split, test_split in splitter.get_splits(rice_df):
-            X_train = normalize_data(train_split.drop(columns=["label"]))
+            X_train = train_split.drop(columns=["label"])
             y_train = train_split["label"]
-            X_test = normalize_data(test_split.drop(columns=["label"]))
+            X_test = test_split.drop(columns=["label"])
             y_test = test_split["label"]
 
             knn_model = KNN(k=params_dict["k"])
@@ -239,6 +243,6 @@ def run_nb():
     plt.clf()
 
 if __name__ == "__main__":
-    run_rf()
+    # run_rf()
     run_knn()
-    run_nb()
+    # run_nb()

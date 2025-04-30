@@ -17,6 +17,7 @@ def run_knn():
     credit_df = transformer.fit_transform(credit_df)
     credit_df = pd.DataFrame(credit_df, columns=transformer.get_feature_names_out())
     credit_df.rename(columns={"remainder__label": "label"}, inplace=True)
+    credit_df = normalize_data(credit_df)
 
     splitter = StratifiedKFold(k=10)
     hyperparams = {
@@ -41,9 +42,9 @@ def run_knn():
         avg_f1_score = 0
 
         for train_split, test_split in splitter.get_splits(credit_df):
-            X_train = normalize_data(train_split.drop(columns=["label"]))
+            X_train = train_split.drop(columns=["label"])
             y_train = train_split["label"]
-            X_test = normalize_data(test_split.drop(columns=["label"]))
+            X_test = test_split.drop(columns=["label"])
             y_test = test_split["label"]
 
             knn_model = KNN(k=params_dict["k"])

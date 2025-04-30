@@ -83,6 +83,7 @@ def run_rf():
 def run_knn():
     # KNN for Parkinson's Dataset
     parkinsons_df = pd.read_csv("data/parkinsons.csv")
+    parkinsons_df = normalize_data(parkinsons_df)
     splitter = StratifiedKFold(k=10, class_column="Diagnosis")
 
     hyperparams = {
@@ -106,9 +107,9 @@ def run_knn():
         avg_accuracy = 0
         avg_f1_score = 0
         for train_split, test_split in splitter.get_splits(parkinsons_df):
-            X_train = normalize_data(train_split.drop(columns=["Diagnosis"]))
+            X_train = train_split.drop(columns=["Diagnosis"])
             y_train = train_split["Diagnosis"]
-            X_test = normalize_data(test_split.drop(columns=["Diagnosis"]))
+            X_test = test_split.drop(columns=["Diagnosis"])
             y_test = test_split["Diagnosis"]
 
             knn_model = KNN(k=params_dict["k"])

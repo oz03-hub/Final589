@@ -42,6 +42,7 @@ def run_knn():
     df = pd.DataFrame(digits[0])
     df["y"] = digits[1]
     df.columns = df.columns.astype(str)
+    df = normalize_data(df)
 
     splitter = StratifiedKFold(k=10, class_column="y")
 
@@ -198,12 +199,13 @@ def run_nn():
     df["y"] = digits[1]
 
     models = [
-        NeuralNet(layers=[64, 100, 100, 100, 10], step_size=0.1, lambda_reg=0.1, epochs=30),
-        NeuralNet(layers=[64, 100, 100, 100, 100, 100, 10], step_size=0.1, lambda_reg=0.1, epochs=30),
-        NeuralNet(layers=[64, 100, 100, 100, 10], step_size=0.1, lambda_reg=0.5, epochs=30),
-        NeuralNet(layers=[64, 100, 100, 100, 10], step_size=0.1, lambda_reg=0.01, epochs=30),
-        NeuralNet(layers=[64, 100, 150, 100, 32, 10], step_size=0.1, lambda_reg=0.1, epochs=30),
-        NeuralNet(layers=[64, 200, 10], step_size=0.1, lambda_reg=0.1, epochs=30),
+        NeuralNet(layers=[64, 48, 10], step_size=0.1, lambda_reg=0.1, batch_size=50, epochs=50),
+        NeuralNet(layers=[64, 100, 10], step_size=0.1, lambda_reg=0.1, batch_size=50, epochs=50),
+        NeuralNet(layers=[64, 200, 10], step_size=0.1, lambda_reg=0.1, epochs=50),
+        NeuralNet(layers=[64, 100, 100, 10], step_size=0.1, lambda_reg=0.1, batch_size=50, epochs=50),
+        NeuralNet(layers=[64, 100, 100, 100, 100, 100, 10], step_size=0.1, lambda_reg=0.1, epochs=50),
+        NeuralNet(layers=[64, 100, 100, 10], step_size=0.1, lambda_reg=0.5, batch_size=50, epochs=50),
+        NeuralNet(layers=[64, 100, 100, 10], step_size=0.1, lambda_reg=0.9, batch_size=50, epochs=50),
     ]
 
     best_model = None
@@ -213,19 +215,22 @@ def run_nn():
     splitter = StratifiedKFold(k=10, class_column="y")
     accuracies = []
     f1_scores = []
+    best_losses = None
     t = ""
     print("NN for MNIST Dataset")
     for model in models:
         avg_accuracy = 0
         avg_f1_score = 0
-
+        
+        losses = [0 for _ in range(model.epochs)]
         for train_split, test_split in splitter.get_splits(df):
             X_train = train_split.drop(columns=["y"]).to_numpy()
             y_train = np.eye(10)[train_split["y"].to_list()]
             X_test = test_split.drop(columns=["y"]).to_numpy()
             y_test = np.eye(10)[test_split["y"].to_list()]
 
-            model.refit(X_train, y_train)
+            epoch_loss = model.refit(X_train, y_train)
+            losses = [l + e for l, e in zip(losses, epoch_loss)]
             predictions = model.predict(X_test)
             predictions = [z.reshape(-1) for z in predictions]
             pred_labels = np.argmax(predictions, axis=1)
@@ -234,6 +239,7 @@ def run_nn():
             avg_accuracy += accuracy(pred_labels, actual_labels)
             avg_f1_score += f1(pred_labels, actual_labels)
 
+        losses = [l / 10 for l in losses]
         avg_accuracy /= 10
         avg_f1_score /= 10
         print(f"\tParams: {model.model_str()}")
@@ -247,6 +253,7 @@ def run_nn():
             best_accuracy = avg_accuracy
             best_f1_score = avg_f1_score
             best_model = model
+            best_losses = losses
 
         accuracies.append(avg_accuracy)
         f1_scores.append(avg_f1_score)
@@ -261,9 +268,18 @@ def run_nn():
         f.write(f"Best Model: {best_model.model_str()}\n")
         f.write(f"Best Accuracy: {best_accuracy}\n")
         f.write(f"Best F1 Score: {best_f1_score}\n")
+    
+    plt.plot(list(range(len(best_losses))), best_losses, label="J over training epochs", marker="o")
+    plt.ylim(min(best_losses) - 0.05, max(best_losses) + 0.05)
+    plt.xlabel("Training Epochs")
+    plt.ylabel("Regularized J")
+    plt.legend()
+    plt.grid()
+    plt.savefig("ozel/figures/mnist_nn.png")
+    plt.clf()
+
 
 if __name__ == "__main__":
-    # run_nn()
+    run_nn()
     # run_rf()
-    run_knn()
-
+    # run_knn()
