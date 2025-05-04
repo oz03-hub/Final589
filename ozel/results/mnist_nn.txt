@@ -4,15 +4,15 @@
 	Params: NN Layers: [64, 100, 10], Step size: 0.1, Lambda: 0.1, Batch size: 50, Epochs: 50
 	Avg Accuracy: 0.9373746265471619
 	Avg F1 Score: 0.9373653356393656
-	Params: NN Layers: [64, 200, 10], Step size: 0.1, Lambda: 0.1, Batch size: 150, Epochs: 50
-	Avg Accuracy: 0.8778382415706361
-	Avg F1 Score: 0.8778599063471602
+	Params: NN Layers: [64, 200, 10], Step size: 0.1, Lambda: 0.1, Batch size: 50, Epochs: 50
+	Avg Accuracy: 0.9411545027742211
+	Avg F1 Score: 0.9409789274389672
 	Params: NN Layers: [64, 100, 100, 10], Step size: 0.1, Lambda: 0.1, Batch size: 50, Epochs: 50
 	Avg Accuracy: 0.9287532010243277
 	Avg F1 Score: 0.9286747587637025
-	Params: NN Layers: [64, 100, 100, 100, 100, 100, 10], Step size: 0.1, Lambda: 0.1, Batch size: 150, Epochs: 50
-	Avg Accuracy: 0.8466122492530943
-	Avg F1 Score: 0.8443058588063794
+	Params: NN Layers: [64, 100, 100, 100, 100, 100, 10], Step size: 0.1, Lambda: 0.1, Batch size: 50, Epochs: 50
+	Avg Accuracy: 0.9268512590695688
+	Avg F1 Score: 0.9265746370855329
 	Params: NN Layers: [64, 100, 100, 10], Step size: 0.1, Lambda: 0.5, Batch size: 50, Epochs: 50
 	Avg Accuracy: 0.9657357020913361
 	Avg F1 Score: 0.9658898883062751

@@ -1,3 +1,4 @@
+"""Code from HW3, slightly improved to handle multi labels in stratification"""
 import pandas as pd
 from sklearn.utils import shuffle
 

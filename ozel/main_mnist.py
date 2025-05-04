@@ -7,6 +7,7 @@ from neural_net import NeuralNet
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn import datasets
+import os
 
 def accuracy(predictions, actual):
     c = 0
@@ -101,7 +102,7 @@ def run_knn():
     print(f"Best Accuracy: {best_accuracy}")
     print(f"Best F1 Score: {best_f1_score}")
 
-    with open("ozel/results/mnist_knn.txt", "w") as f:
+    with open("results/mnist_knn.txt", "w") as f:
         f.write(t)
         f.write("Best metrics\n")
         f.write(f"Best Params: {best_params}\n")
@@ -115,7 +116,7 @@ def run_knn():
     plt.ylabel("Accuracy and F1 Score")
     plt.legend()
     plt.grid()
-    plt.savefig("ozel/figures/mnist_knn.png")
+    plt.savefig("figures/mnist_knn.png")
     plt.clf()
 
 def run_rf():
@@ -175,7 +176,7 @@ def run_rf():
     print(f"Best Accuracy: {best_accuracy}")
     print(f"Best F1 Score: {best_f1_score}")
 
-    with open("ozel/results/mnist_rf.txt", "w") as f:
+    with open("results/mnist_rf.txt", "w") as f:
         f.write(t)
         f.write("Best metrics\n")
         f.write(f"Best Params: {best_params}\n")
@@ -189,7 +190,7 @@ def run_rf():
     plt.ylabel("Accuracy and F1 Score")
     plt.legend()
     plt.grid()
-    plt.savefig("ozel/figures/mnist_rf.png")
+    plt.savefig("figures/mnist_rf.png")
     plt.clf()
 
 
@@ -201,9 +202,9 @@ def run_nn():
     models = [
         NeuralNet(layers=[64, 48, 10], step_size=0.1, lambda_reg=0.1, batch_size=50, epochs=50),
         NeuralNet(layers=[64, 100, 10], step_size=0.1, lambda_reg=0.1, batch_size=50, epochs=50),
-        NeuralNet(layers=[64, 200, 10], step_size=0.1, lambda_reg=0.1, epochs=50),
+        NeuralNet(layers=[64, 200, 10], step_size=0.1, lambda_reg=0.1, batch_size=50, epochs=50),
         NeuralNet(layers=[64, 100, 100, 10], step_size=0.1, lambda_reg=0.1, batch_size=50, epochs=50),
-        NeuralNet(layers=[64, 100, 100, 100, 100, 100, 10], step_size=0.1, lambda_reg=0.1, epochs=50),
+        NeuralNet(layers=[64, 100, 100, 100, 100, 100, 10], step_size=0.1, batch_size=50, lambda_reg=0.1, epochs=50),
         NeuralNet(layers=[64, 100, 100, 10], step_size=0.1, lambda_reg=0.5, batch_size=50, epochs=50),
         NeuralNet(layers=[64, 100, 100, 10], step_size=0.1, lambda_reg=0.9, batch_size=50, epochs=50),
     ]
@@ -262,7 +263,7 @@ def run_nn():
     print(f"Best Accuracy: {best_accuracy}")
     print(f"Best F1 Score: {best_f1_score}")
 
-    with open("ozel/results/mnist_nn.txt", "w") as f:
+    with open("results/mnist_nn.txt", "w") as f:
         f.write(t)
         f.write("Best metrics\n")
         f.write(f"Best Model: {best_model.model_str()}\n")
@@ -275,11 +276,13 @@ def run_nn():
     plt.ylabel("Regularized J")
     plt.legend()
     plt.grid()
-    plt.savefig("ozel/figures/mnist_nn.png")
+    plt.savefig("figures/mnist_nn.png")
     plt.clf()
 
 
 if __name__ == "__main__":
+    os.makedirs('results', exist_ok=True)
+    os.makedirs('figures', exist_ok=True)
     run_nn()
-    # run_rf()
-    # run_knn()
+    run_rf()
+    run_knn()

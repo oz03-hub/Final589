@@ -4,10 +4,10 @@ from itertools import product
 from random_forest import RandomForest
 from knn import KNN, normalize_data
 from standard_nb import NaiveBayes
-from neural_net import NeuralNet
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import make_column_transformer
 import matplotlib.pyplot as plt
+import os
 
 def run_knn():
     # src: https://datagy.io/sklearn-one-hot-encode/
@@ -79,7 +79,7 @@ def run_knn():
     print(f"Best Accuracy: {best_accuracy}")
     print(f"Best F1 Score: {best_f1_score}")
 
-    with open("ozel/results/credit_knn.txt", "w") as f:
+    with open("results/credit_knn.txt", "w") as f:
         f.write(t)
         f.write("Best metrics\n")
         f.write(f"Best Params: {best_params}\n")
@@ -93,7 +93,7 @@ def run_knn():
     plt.ylabel("Accuracy and F1 Score")
     plt.legend()
     plt.grid()
-    plt.savefig("ozel/figures/credit_knn.png")
+    plt.savefig("figures/credit_knn.png")
     plt.clf()
 
 def run_rf():
@@ -154,7 +154,7 @@ def run_rf():
     print(f"Best Accuracy: {best_accuracy}")
     print(f"Best F1 Score: {best_f1_score}")
 
-    with open("ozel/results/credit_rf.txt", "w") as f:
+    with open("results/credit_rf.txt", "w") as f:
         f.write(t)
         f.write("Best metrics\n")
         f.write(f"Best Params: {best_params}\n")
@@ -168,7 +168,7 @@ def run_rf():
     plt.ylabel("Accuracy and F1 Score")
     plt.legend()
     plt.grid()
-    plt.savefig("ozel/figures/credit_rf.png")
+    plt.savefig("figures/credit_rf.png")
     plt.clf()
 
 def run_nb():
@@ -235,7 +235,7 @@ def run_nb():
     print(f"Best Accuracy: {best_accuracy}")
     print(f"Best F1 Score: {best_f1_score}")
 
-    with open("ozel/results/credit_nb.txt", "w") as f:
+    with open("results/credit_nb.txt", "w") as f:
         f.write(t)
         f.write("Best metrics\n")
         f.write(f"Best Params: {best_params}\n")
@@ -249,10 +249,12 @@ def run_nb():
     plt.ylabel("Accuracy and F1 Score")
     plt.legend()
     plt.grid()
-    plt.savefig("ozel/figures/credit_nb.png")
+    plt.savefig("figures/credit_nb.png")
     plt.clf()
 
 if __name__ == "__main__":
+    os.makedirs('results', exist_ok=True)
+    os.makedirs('figures', exist_ok=True)
     run_knn()
     run_rf()
     run_nb()

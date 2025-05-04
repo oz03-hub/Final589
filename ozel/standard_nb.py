@@ -1,3 +1,4 @@
+"""Improved smoothed NB code from HW2"""
 import pandas as pd
 import numpy as np
 import math

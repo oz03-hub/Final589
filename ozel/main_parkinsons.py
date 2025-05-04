@@ -5,6 +5,7 @@ from itertools import product
 from random_forest import RandomForest
 from standard_nb import NaiveBayes
 import matplotlib.pyplot as plt
+import os
 
 def run_rf():
     # Random Forest for Parkinson's Dataset
@@ -63,7 +64,7 @@ def run_rf():
     print(f"Best Accuracy: {best_accuracy}")
     print(f"Best F1 Score: {best_f1_score}")
 
-    with open("ozel/results/parkinsons_rf.txt", "w") as f:
+    with open("results/parkinsons_rf.txt", "w") as f:
         f.write(t)
         f.write("Best metrics\n")
         f.write(f"Best Params: {best_params}\n")
@@ -77,7 +78,7 @@ def run_rf():
     plt.ylabel("Accuracy and F1 Score")
     plt.legend()
     plt.grid()
-    plt.savefig("ozel/figures/parkinsons_rf.png")
+    plt.savefig("figures/parkinsons_rf.png")
     plt.clf()
 
 def run_knn():
@@ -144,7 +145,7 @@ def run_knn():
     print(f"Best Accuracy: {best_accuracy}")
     print(f"Best F1 Score: {best_f1_score}")
 
-    with open("ozel/results/parkinsons_knn.txt", "w") as f:
+    with open("results/parkinsons_knn.txt", "w") as f:
         f.write(t)
         f.write("Best metrics\n")
         f.write(f"Best Params: {best_params}\n")
@@ -158,7 +159,7 @@ def run_knn():
     plt.ylabel("Accuracy and F1 Score")
     plt.legend()
     plt.grid()
-    plt.savefig("ozel/figures/parkinsons_knn.png")
+    plt.savefig("figures/parkinsons_knn.png")
     plt.clf()
 
 def run_nb():
@@ -219,7 +220,7 @@ def run_nb():
     print(f"Best Accuracy: {best_accuracy}")
     print(f"Best F1 Score: {best_f1_score}")
 
-    with open("ozel/results/parkinsons_nb.txt", "w") as f:
+    with open("results/parkinsons_nb.txt", "w") as f:
         f.write(t)
         f.write("Best metrics\n")
         f.write(f"Best Params: {best_params}\n")
@@ -233,10 +234,12 @@ def run_nb():
     plt.ylabel("Accuracy and F1 Score")
     plt.legend()
     plt.grid()
-    plt.savefig("ozel/figures/parkinsons_nb.png")
+    plt.savefig("figures/parkinsons_nb.png")
     plt.clf()
 
 if __name__ == "__main__":
+    os.makedirs('results', exist_ok=True)
+    os.makedirs('figures', exist_ok=True)
     run_rf()
     run_knn()
     run_nb()
