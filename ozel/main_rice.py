@@ -6,6 +6,7 @@ from random_forest import RandomForest
 from standard_nb import NaiveBayes
 import matplotlib.pyplot as plt
 import os
+from neural_net import NeuralNet
 
 def run_rf():
     # Random Forest for Rice Dataset
@@ -243,9 +244,98 @@ def run_nb():
     plt.savefig("figures/rice_nb.png")
     plt.clf()
 
+def run_nn():
+    rice_df = pd.read_csv("data/rice.csv")
+    features = rice_df.drop(columns=["label"])
+    labels = rice_df["label"]
+    features = normalize_data(features)
+    rice_df = pd.concat([features, labels.reset_index(drop=True)], axis=1)
+    rice_df['label'] = rice_df['label'].astype(str).replace({"Cammeo": 0, "Osmancik": 1})
+    splitter = StratifiedKFold(k=10)
+
+    models = [
+        NeuralNet(layers=[7, 3, 1], step_size=0.1, lambda_reg=0.1, batch_size=150, epochs=50),
+        NeuralNet(layers=[7, 10, 1], step_size=0.1, lambda_reg=0.1, batch_size=150, epochs=50),
+        NeuralNet(layers=[7, 30, 1], step_size=0.1, lambda_reg=0.1, batch_size=150, epochs=50),
+        NeuralNet(layers=[7, 100, 1], step_size=0.1, lambda_reg=0.1, batch_size=150, epochs=50),
+        NeuralNet(layers=[7, 30, 30, 1], step_size=0.1, lambda_reg=0.5, batch_size=150, epochs=50),
+        NeuralNet(layers=[7, 30, 30, 1], step_size=0.1, lambda_reg=1.0, batch_size=150, epochs=50),
+    ]
+
+    best_model = None
+    best_accuracy = 0
+    best_f1_score = 0
+
+    accuracies = []
+    f1_scores = []
+    best_losses = None
+    t = ""
+    print("NN for Rice Dataset")
+    for model in models:
+        avg_accuracy = 0
+        avg_f1_score = 0
+        
+        losses = [0 for _ in range(model.epochs)]
+        for train_split, test_split in splitter.get_splits(rice_df):
+            X_train = train_split.drop(columns=["label"]).to_numpy()
+            y_train = train_split["label"].to_numpy()
+            X_test = test_split.drop(columns=["label"]).to_numpy()
+            y_test = test_split["label"].to_numpy()
+
+            epoch_loss = model.refit(X_train, y_train)
+            losses = [l + e for l, e in zip(losses, epoch_loss)]
+            tp, fp, fn, tn = model.confusion_matrix(X_test, y_test)
+            acc = (tp + tn) / (tp + fp + fn + tn)
+            r = tp / (tp + fn)
+            p = tp / (tp + fp)
+            f1 = 2 * p * r / (p + r)
+            avg_accuracy += acc
+            avg_f1_score += f1
+
+        losses = [l / 10 for l in losses]
+        avg_accuracy /= 10
+        avg_f1_score /= 10
+        print(f"\tParams: {model.model_str()}")
+        print(f"\tAvg Accuracy: {avg_accuracy}")
+        print(f"\tAvg F1 Score: {avg_f1_score}")
+        print()
+
+        t += f"\tParams: {model.model_str()}\n\tAvg Accuracy: {avg_accuracy}\n\tAvg F1 Score: {avg_f1_score}\n"
+
+        if avg_accuracy > best_accuracy:
+            best_accuracy = avg_accuracy
+            best_f1_score = avg_f1_score
+            best_model = model
+            best_losses = losses
+
+        accuracies.append(avg_accuracy)
+        f1_scores.append(avg_f1_score)
+
+    print(f"Best Model: {best_model.model_str()}")
+    print(f"Best Accuracy: {best_accuracy}")
+    print(f"Best F1 Score: {best_f1_score}")
+
+    with open("results/rice_nn.txt", "w") as f:
+        f.write(t)
+        f.write("Best metrics\n")
+        f.write(f"Best Model: {best_model.model_str()}\n")
+        f.write(f"Best Accuracy: {best_accuracy}\n")
+        f.write(f"Best F1 Score: {best_f1_score}\n")
+    
+    plt.plot(list(range(len(best_losses))), best_losses, label="J over training epochs", marker="o")
+    plt.ylim(min(best_losses) - 0.05, max(best_losses) + 0.05)
+    plt.xlabel("Training Epochs")
+    plt.ylabel("Regularized J")
+    plt.legend()
+    plt.grid()
+    plt.savefig("figures/rice_nn.png")
+    plt.clf()
+
+
 if __name__ == "__main__":
     os.makedirs('results', exist_ok=True)
     os.makedirs('figures', exist_ok=True)
     run_rf()
     run_knn()
-    run_nb()
+    # run_nb()
+    run_nn()

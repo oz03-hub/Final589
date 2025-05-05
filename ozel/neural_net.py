@@ -32,6 +32,7 @@ class NeuralNet:
     
     def _activation(self, z: np.ndarray) -> np.ndarray:
         # sigmoid activator
+        z = z.astype(np.float128)
         return 1 / (1 + np.exp(-z))
 
 
@@ -178,6 +179,28 @@ class NeuralNet:
             output = self._forward_pass(x)
             predictions.append(output[-1])
         return predictions
+
+    def confusion_matrix(self, X: np.ndarray, Y: np.ndarray, threshold: float = 0.5):
+        """
+            Returns tp, fp, fn, tn
+        """
+        predictions = self.predict(X)
+        predictions = [1 if p > threshold else 0 for p in predictions]
+
+        tp = 0
+        tn = 0
+        fp = 0
+        fn = 0
+        for p, y in zip(predictions, Y):
+            if p == 1 and y == 1:
+                tp += 1
+            elif p == 0 and y == 0:
+                tn += 1
+            elif p == 1 and y == 0:
+                fp += 1
+            elif p == 0 and y == 1:
+                fn += 1
+        return tp, fp, fn, tn
 
     def loss_against_test(self, X_test: np.ndarray, y_test: np.ndarray):
         predictions = self.predict(X_test)
